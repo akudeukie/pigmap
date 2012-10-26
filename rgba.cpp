@@ -16,6 +16,7 @@
 // along with pigmap.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <png.h>
+#include <jpeglib.h>
 #include <errno.h>
 
 #include "rgba.h"
@@ -156,6 +157,24 @@ bool RGBAImage::readPNG(const string& filename)
 	return true;
 }
 
+namespace ImageSettings
+{
+
+	Format format = Format_PNG;
+	int jpegQuality = 75;
+
+}
+
+bool RGBAImage::writeImage(const string& filename)
+{
+	bool success = true;
+	if (ImageSettings::format != ImageSettings::Format_JPEG)
+		success = writePNG(filename + ".png") && success;
+	if (ImageSettings::format != ImageSettings::Format_PNG)
+		success = writeJPEG(filename + ".jpeg") && success;
+	return success;
+}
+
 bool RGBAImage::writePNG(const string& filename)
 {
 	FILE *f = fopen(filename.c_str(), "wb");
@@ -207,6 +226,64 @@ bool RGBAImage::writePNG(const string& filename)
 	return true;
 }
 
+bool RGBAImage::writeJPEG(const string& filename)
+{
+	FILE *f = fopen(filename.c_str(), "wb");
+	if (f == NULL)
+	{
+		// if the directory didn't exist, create it and try again
+		if (errno == ENOENT)
+		{
+			makePath(filename.substr(0, filename.rfind('/')));
+			f = fopen(filename.c_str(), "wb");
+		}
+		if (f == NULL)
+			return false;
+	}
+	fcloser fc(f);
+		
+	jpeg_compress_struct cinfo;
+	jpeg_error_mgr       jerr;
+ 
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+	jpeg_stdio_dest(&cinfo, f);
+ 
+	cinfo.image_width      = w;
+	cinfo.image_height     = h;
+	cinfo.input_components = 3;
+	cinfo.in_color_space   = JCS_RGB;
+
+	jpeg_set_defaults(&cinfo);
+	jpeg_set_quality(&cinfo, ImageSettings::jpegQuality, true);
+	jpeg_start_compress(&cinfo, true);
+	
+	JSAMPLE* scanlineData = new JSAMPLE[3 * w];
+	arrayDeleter<JSAMPLE> ad(scanlineData);
+	bool bigEndian = isBigEndian();
+	while (cinfo.next_scanline < cinfo.image_height)
+	{
+		RGBAPixel* p = &data[w * cinfo.next_scanline];
+		for (uint32_t x = 0; x < w; ++x)
+		{
+			if (ALPHA(p[x]) > 0)
+			{
+				scanlineData[x * 3] = RED(p[x]);
+				scanlineData[x * 3 + 1] = GREEN(p[x]);
+				scanlineData[x * 3 + 2] = BLUE(p[x]);
+			}
+			else
+			{
+				scanlineData[x * 3] = 255;
+				scanlineData[x * 3 + 1] = 255;
+				scanlineData[x * 3 + 2] = 255;
+			}
+		}
+		jpeg_write_scanlines(&cinfo, &scanlineData, 1);
+	}
+	jpeg_finish_compress(&cinfo);
+	return true;
+}
 
 
 

@@ -310,7 +310,7 @@ string ZoomTileIdx::toFilePath() const
 	if (!valid())
 		return string();
 	if (zoom == 0)
-		return "base.png";
+		return "base";
 	string s;
 	for (int z = zoom-1; z >= 0; z--)
 	{
@@ -319,7 +319,6 @@ string ZoomTileIdx::toFilePath() const
 		s += tostring(xbit + 2*ybit) + "/";
 	}
 	s.resize(s.size() - 1);  // drop final slash
-	s += ".png";
 	return s;
 }
 

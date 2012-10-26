@@ -50,7 +50,23 @@ struct RGBAImage
 
 	bool readPNG(const std::string& filename);
 	bool writePNG(const std::string& filename);
+	bool writeJPEG(const std::string& filename);
+	
+	bool writeImage(const std::string& filename); // writes png and/or jpeg
 };
+
+namespace ImageSettings
+{
+	enum Format
+	{
+		Format_PNG,
+		Format_JPEG,
+		Format_Both
+	};
+	
+	extern Format format;
+	extern int jpegQuality;
+}
 
 struct ImageRect
 {

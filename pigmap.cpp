@@ -311,10 +311,18 @@ bool expandMap(const string& outputpath)
 	renameFile(outputpath + "/old2", outputpath + "/2/1");
 	renameFile(outputpath + "/old3", outputpath + "/3/0");
 	// ...now the zoom 1 files
-	renameFile(outputpath + "/0.png", outputpath + "/0/3.png");
-	renameFile(outputpath + "/1.png", outputpath + "/1/2.png");
-	renameFile(outputpath + "/2.png", outputpath + "/2/1.png");
-	renameFile(outputpath + "/3.png", outputpath + "/3/0.png");
+	const char* formatExtensions[] = {".png", ".jpeg"};
+	ImageSettings::Format formats[] = {ImageSettings::Format_PNG, ImageSettings::Format_JPEG};
+	for (int i = 0; i < 2; ++i) {
+		if (ImageSettings::format == formats[i] || ImageSettings::format == ImageSettings::Format_Both)
+		{
+			const char* format = formatExtensions[i];
+			renameFile(outputpath + "/0" + format, outputpath + "/0/3" + format);
+			renameFile(outputpath + "/1" + format, outputpath + "/1/2" + format);
+			renameFile(outputpath + "/2" + format, outputpath + "/2/1" + format);
+			renameFile(outputpath + "/3" + format, outputpath + "/3/0" + format);
+		}
+	}
 
 	// build the new zoom 1 tiles
 	RGBAImage old0img;
@@ -324,7 +332,7 @@ bool expandMap(const string& outputpath)
 	if (used0)
 	{
 		reduceHalf(new0img, ImageRect(tileSize/2, tileSize/2, tileSize/2, tileSize/2), old0img);
-		new0img.writePNG(outputpath + "/0.png");
+		new0img.writeImage(outputpath + "/0");
 	}
 	RGBAImage old1img;
 	bool used1 = old1img.readPNG(outputpath + "/1/2.png");
@@ -333,7 +341,7 @@ bool expandMap(const string& outputpath)
 	if (used1)
 	{
 		reduceHalf(new1img, ImageRect(0, tileSize/2, tileSize/2, tileSize/2), old1img);
-		new1img.writePNG(outputpath + "/1.png");
+		new1img.writeImage(outputpath + "/1");
 	}
 	RGBAImage old2img;
 	bool used2 = old2img.readPNG(outputpath + "/2/1.png");
@@ -342,7 +350,7 @@ bool expandMap(const string& outputpath)
 	if (used2)
 	{
 		reduceHalf(new2img, ImageRect(tileSize/2, 0, tileSize/2, tileSize/2), old2img);
-		new2img.writePNG(outputpath + "/2.png");
+		new2img.writeImage(outputpath + "/2");
 	}
 	RGBAImage old3img;
 	bool used3 = old3img.readPNG(outputpath + "/3/0.png");
@@ -351,7 +359,7 @@ bool expandMap(const string& outputpath)
 	if (used3)
 	{
 		reduceHalf(new3img, ImageRect(0, 0, tileSize/2, tileSize/2), old3img);
-		new3img.writePNG(outputpath + "/3.png");
+		new3img.writeImage(outputpath + "/3");
 	}
 
 	// build the new base tile
@@ -365,7 +373,7 @@ bool expandMap(const string& outputpath)
 		reduceHalf(newbase, ImageRect(0, tileSize/2, tileSize/2, tileSize/2), new2img);
 	if (used3)
 		reduceHalf(newbase, ImageRect(tileSize/2, tileSize/2, tileSize/2, tileSize/2), new3img);
-	newbase.writePNG(outputpath + "/base.png");
+	newbase.writeImage(outputpath + "/base");
 
 	// write new params (with incremented baseZoom)
 	mp.baseZoom++;
@@ -393,7 +401,8 @@ void writeHTML(const RenderJob& rj, const string& htmlpath)
 	if (!replace(templateText, "{tileSize}", tostring(rj.mp.tileSize())) ||
 	    !replace(templateText, "{B}", tostring(rj.mp.B)) ||
 	    !replace(templateText, "{T}", tostring(rj.mp.T)) ||
-	    !replace(templateText, "{baseZoom}", tostring(rj.mp.baseZoom)))
+	    !replace(templateText, "{baseZoom}", tostring(rj.mp.baseZoom)) ||
+		!replace(templateText, "{format}", ImageSettings::format == ImageSettings::Format_PNG ? "png" : "jpeg"))
 	{
 		cerr << "template.html is corrupt" << endl;
 		return;
@@ -863,6 +872,14 @@ bool validateParamsIncremental(const string& inputpath, const string& outputpath
 		cerr << "-B, -T, -Z, -y, -Y not allowed for incremental updates" << endl;
 		return false;
 	}
+	
+	// Format cannot be jpeg-only
+	if (ImageSettings::format == ImageSettings::Format_JPEG)
+	{
+		cerr << "PNG image output is required for incremental rendering" << endl
+			 << "Please use format \"png\" or \"both\"" << endl;
+		return false;
+	}
 
 	// the various paths must be non-empty
 	if (inputpath.empty() || outputpath.empty())
@@ -992,7 +1009,7 @@ int main(int argc, char **argv)
 	bool expand = false;
 
 	int c;
-	while ((c = getopt(argc, argv, "i:o:g:c:B:T:Z:h:w:xm:r:y:Y:")) != -1)
+	while ((c = getopt(argc, argv, "i:o:g:c:B:T:Z:h:w:xm:r:y:Y:j:f:")) != -1)
 	{
 		switch (c)
 		{
@@ -1010,6 +1027,27 @@ int main(int argc, char **argv)
 				break;
 			case 'r':
 				regionlist = optarg;
+				break;
+			case 'f':
+				if (strcasecmp(optarg, "png") == 0)
+					ImageSettings::format = ImageSettings::Format_PNG;
+				else if (strcasecmp(optarg, "jpg") == 0 || strcasecmp(optarg, "jpeg") == 0)
+					ImageSettings::format = ImageSettings::Format_JPEG;
+				else if (strcasecmp(optarg, "both") == 0)
+					ImageSettings::format = ImageSettings::Format_Both;
+				else
+				{
+					cerr << "Unrecognized format: " << optarg << ", expected png/jpeg/both" << endl;
+					return 1;
+				}
+				break;
+			case 'j':
+				ImageSettings::jpegQuality = atoi(optarg);
+				if (ImageSettings::jpegQuality < 1 || ImageSettings::jpegQuality > 100)
+				{
+					cerr << "Invalid jpeg quality (" << ImageSettings::jpegQuality << ")" << endl;
+					return 1;
+				}
 				break;
 			case 'B':
 				mp.B = atoi(optarg);

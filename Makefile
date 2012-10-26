@@ -1,7 +1,7 @@
 objects = pigmap.o blockimages.o chunk.o map.o render.o region.o rgba.o tables.o utils.o world.o
 
 pigmap : $(objects)
-	g++ $(objects) -o pigmap -l z -l png -l pthread -O3
+	g++ $(objects) -o pigmap -l z -l png -l jpeg -l pthread -O3
 
 pigmap.o : pigmap.cpp blockimages.h chunk.h map.h render.h rgba.h tables.h utils.h world.h
 	g++ -c pigmap.cpp -O3

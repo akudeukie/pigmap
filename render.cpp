@@ -622,7 +622,7 @@ bool renderTile(const TileIdx& ti, RenderJob& rj, RGBAImage& tile)
 		drawSubgraph(sg, i, tile, blockimages);
 
 	// save the image to disk
-	if (!tile.writePNG(tilefile))
+	if (!tile.writeImage(tilefile))
 		cerr << "failed to write " << tilefile << endl;
 	return true;
 }
@@ -665,7 +665,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile)
 	if (usedcount < 4 && !rj.fullrender)
 	{
 		// if it doesn't read, no big deal (it may not exist anyway)
-		if (!tile.readPNG(tilefile) || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
+		if (!tile.readPNG(tilefile + ".png") || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
 			tile.create(rj.mp.tileSize(), rj.mp.tileSize());
 	}
 	else
@@ -683,7 +683,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile)
 		reduceHalf(tile, ImageRect(halfsize, halfsize, halfsize, halfsize), zlevel.tiles[3]);
 
 	// save to disk
-	if (!tile.writePNG(tilefile))
+	if (!tile.writeImage(tilefile))
 		cerr << "failed to write " << tilefile << endl;
 	return true;
 }
@@ -747,7 +747,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile, cons
 	if (usedcount < 4 && !rj.fullrender)
 	{
 		// if it doesn't read, no big deal (it may not exist anyway)
-		if (!tile.readPNG(tilefile) || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
+		if (!tile.readPNG(tilefile + ".png") || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
 			tile.create(rj.mp.tileSize(), rj.mp.tileSize());
 	}
 	else
@@ -765,7 +765,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile, cons
 		reduceHalf(tile, ImageRect(halfsize, halfsize, halfsize, halfsize), *tile3);
 
 	// save to disk
-	if (!tile.writePNG(tilefile))
+	if (!tile.writeImage(tilefile))
 		cerr << "failed to write " << tilefile << endl;
 	return true;
 }
