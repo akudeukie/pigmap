@@ -78,9 +78,9 @@
 //  are the farthest blocks NED, NEU, SEU, SWU, SWD, NWD
 //
 //               SEU
-//              / . \
-//             /  .  \
-//           NEU  .  SWU
+//              / . \`
+//             /  .  \`
+//           NEU  .  SWU 
 //            |\  .  /|
 //            | \ . / |
 //            |  NWU  |
