@@ -175,7 +175,7 @@ int assignThreadTasks(vector<WorkerThreadParams>& wtps, const TileTable& ttable,
 	}
 
 	// perform actual assignments
-	for (int i = 0; i < best_assignments.size(); i++)
+	for (uint i = 0; i < best_assignments.size(); i++)
 	{
 		wtps[best_assignments[i]].zoomtiles.push_back(best_reqzoomtiles[i]);
 		wtps[best_assignments[i]].rj->stats.reqtilecount += best_costs[i];

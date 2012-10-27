@@ -45,7 +45,7 @@ int64_t topPixelY(int64_t x, int64_t bboxTop, int B)
 }
 
 TileBlockIterator::TileBlockIterator(const TileIdx& ti, const MapParams& mp)
-	: tile(ti), mparams(mp), current(0,0), expandedBBox(Pixel(0,0), Pixel(0,0))
+	: current(0,0), mparams(mp), tile(ti), expandedBBox(Pixel(0,0), Pixel(0,0))
 {
 	expandedBBox = ti.getBBox(mparams);
 	expandedBBox.topLeft -= Pixel(2*mparams.B - 1, 2*mparams.B - 1);
@@ -805,7 +805,7 @@ void testTileIterator()
 							cout << "[" << bbox.topLeft.x << "," << bbox.topLeft.y << "] to [" << bbox.bottomRight.x << "," << bbox.bottomRight.y << "]" << endl;
 							return;
 						}
-						if (it.pos != blocks.size())
+						if ((uint) it.pos != blocks.size())
 						{
 							cout << "block position seems to have advanced too fast!" << endl;
 							return;

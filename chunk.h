@@ -139,7 +139,7 @@ struct ChunkCache : private nocopy
 	bool regionformat;
 	std::vector<uint8_t> readbuf;  // buffer for decompressing into when reading
 	ChunkCache(ChunkTable& ctable, RegionTable& rtable, RegionCache& rcache, const std::string& inpath, bool fullr, bool regform, ChunkCacheStats& st)
-		: chunktable(ctable), regiontable(rtable), regioncache(rcache), inputpath(inpath), fullrender(fullr), regionformat(regform), stats(st)
+		: chunktable(ctable), regiontable(rtable), stats(st), regioncache(rcache), inputpath(inpath), fullrender(fullr), regionformat(regform)
 	{
 		memset(blankdata.blockIDs, 0, 65536);
 		memset(blankdata.blockData, 0, 32768);

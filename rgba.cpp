@@ -260,11 +260,10 @@ bool RGBAImage::writeJPEG(const string& filename)
 	
 	JSAMPLE* scanlineData = new JSAMPLE[3 * w];
 	arrayDeleter<JSAMPLE> ad(scanlineData);
-	bool bigEndian = isBigEndian();
 	while (cinfo.next_scanline < cinfo.image_height)
 	{
 		RGBAPixel* p = &data[w * cinfo.next_scanline];
-		for (uint32_t x = 0; x < w; ++x)
+		for (uint32_t x = 0; x < (uint)w; ++x)
 		{
 			if (ALPHA(p[x]) > 0)
 			{
