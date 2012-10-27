@@ -805,7 +805,7 @@ void testTileIterator()
 							cout << "[" << bbox.topLeft.x << "," << bbox.topLeft.y << "] to [" << bbox.bottomRight.x << "," << bbox.bottomRight.y << "]" << endl;
 							return;
 						}
-						if ((uint) it.pos != blocks.size())
+						if ((unsigned) it.pos != blocks.size())
 						{
 							cout << "block position seems to have advanced too fast!" << endl;
 							return;
