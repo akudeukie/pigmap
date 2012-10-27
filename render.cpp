@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <iostream>
+#include <assert.h>
 
 #include "render.h"
 #include "utils.h"
@@ -180,40 +181,51 @@ void buildDependencies(SceneGraph& sg, int pcol1, int pcol2, int which)
 	}
 }
 
-#define GETNEIGHBOR(gnid, gndata, gnoff) \
-{ \
-	BlockIdx bin = bi + gnoff; \
-	PosChunkIdx cin = bin.getChunkIdx(); \
-	if (cin == ci) \
-	{ \
-		gnid = chunkdata->id(bin); \
-		gndata = chunkdata->data(bin); \
-	} \
-	else \
-	{ \
-		ChunkData *cdn = rj.chunkcache->getData(cin); \
-		gnid = cdn->id(bin); \
-		gndata = cdn->data(bin); \
-	} \
+struct Block
+{
+	uint16_t id;
+	uint8_t data;
+	
+	inline Block(uint16_t id_, uint8_t data_): id(id_), data(data_) {}
+};
+
+inline Block getNeighbor(ChunkData *chunkdata, RenderJob& rj, const PosChunkIdx& ci, const BlockIdx& bin)
+{
+	PosChunkIdx cin = bin.getChunkIdx();
+	if (cin != ci)
+		chunkdata = rj.chunkcache->getData(cin);
+
+	return Block(chunkdata->id(bin), chunkdata->data(bin));
 }
 
-#define GETNEIGHBORUD(gnid, gndata, gnoff) \
-{ \
-	BlockIdx bin = bi + gnoff; \
-	if (bin.y >= 0 && bin.y <= 255) \
-	{ \
-		gnid = chunkdata->id(bin); \
-		gndata = chunkdata->data(bin); \
-	} \
-	else \
-	{ \
-		gnid = 0; \
-		gndata = 0; \
-	} \
+inline Block getNeighborUD(ChunkData* chunkdata, const BlockIdx& bin)
+{
+	if (bin.y >= 0 && bin.y <= 255)
+		return Block(chunkdata->id(bin), chunkdata->data(bin));
+	return Block(0, 0);
 }
 
-#define CONNECTFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 85 || cfid == 107)
-#define CONNECTNETHERFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 113 || cfid == 107)
+inline bool connectFence(RenderJob& rj, const Block& block)
+{
+	return block.id == 85 || block.id == 107 || rj.blockimages.isOpaque(block.id, block.data);
+}
+
+inline bool connectNetherFence(RenderJob& rj, const Block& block)
+{
+	return block.id == 113 || block.id == 107 || rj.blockimages.isOpaque(block.id, block.data);
+}
+
+inline int getNeighborAirMask(ChunkData* chunkdata, RenderJob& rj, const PosChunkIdx& ci, const BlockIdx& bi)
+{
+	Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+	Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+	Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+	Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+	return (blockN.id != 0 ? 0x1 : 0) |
+			(blockS.id != 0 ? 0x2 : 0) |
+			(blockE.id != 0 ? 0x4 : 0) |
+			(blockW.id != 0 ? 0x8 : 0);
+}
 
 // given a node that must be drawn, see if we need to do anything special to it--that is, anything that
 //  doesn't depend purely on its blockID/blockData
@@ -223,16 +235,13 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 {
 	const BlockIdx& bi = node.bi;
 	
-	uint16_t blockIDN, blockIDS, blockIDE, blockIDW, blockIDU, blockIDD;
-	uint8_t blockDataN, blockDataS, blockDataE, blockDataW, blockDataU, blockDataD;
-
 	if (node.bimgoffset == 8)  // solid water
 	{
 		// if there's water to the W or N, we don't draw those faces
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		bool waterN = blockIDN == 8 || blockIDN == 9;
-		bool waterW = blockIDW == 8 || blockIDW == 9;
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		bool waterN = blockN.id == 8 || blockN.id == 9;
+		bool waterW = blockW.id == 8 || blockW.id == 9;
 		if (waterW && waterN)
 			node.bimgoffset = 157;
 		else if (waterW)
@@ -243,10 +252,10 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	else if (blockID == 79)  // ice
 	{
 		// if there's ice to the W or N, we don't draw those faces
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		bool iceN = blockIDN == 79;
-		bool iceW = blockIDW == 79;
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		bool iceN = blockN.id == 79;
+		bool iceW = blockN.id == 79;
 		if (iceW && iceN)
 			node.bimgoffset = 180;
 		else if (iceW)
@@ -256,111 +265,99 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if (blockID == 85)  // fence
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		int bits = (CONNECTFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
-		            (CONNECTFENCE(blockIDS, blockDataS) ? 0x2 : 0) |
-		            (CONNECTFENCE(blockIDE, blockDataE) ? 0x4 : 0) |
-		            (CONNECTFENCE(blockIDW, blockDataW) ? 0x8 : 0);
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		int bits = (connectFence(rj, blockN) ? 0x1 : 0) |
+		            (connectFence(rj, blockS) ? 0x2 : 0) |
+		            (connectFence(rj, blockE) ? 0x4 : 0) |
+		            (connectFence(rj, blockW) ? 0x8 : 0);
 		if (bits != 0)
 			node.bimgoffset = 157 + bits;
 	}
 	else if (blockID == 113)  // nether fence
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		int bits = (CONNECTNETHERFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
-		            (CONNECTNETHERFENCE(blockIDS, blockDataS) ? 0x2 : 0) |
-		            (CONNECTNETHERFENCE(blockIDE, blockDataE) ? 0x4 : 0) |
-		            (CONNECTNETHERFENCE(blockIDW, blockDataW) ? 0x8 : 0);
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		int bits = (connectNetherFence(rj, blockN) ? 0x1 : 0) |
+		            (connectNetherFence(rj, blockS) ? 0x2 : 0) |
+		            (connectNetherFence(rj, blockE) ? 0x4 : 0) |
+		            (connectNetherFence(rj, blockW) ? 0x8 : 0);
 		if (bits != 0)
 			node.bimgoffset = 316 + bits;
 	}
 	else if (blockID == 54)  // chest
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 		// if there's another chest to the N, make this a southern half
-		if (blockIDN == 54)
-			node.bimgoffset = (blockDataN == 3) ? 488 : 492;
+		if (blockN.id == 54)
+			node.bimgoffset = (blockN.data == 3) ? 488 : 492;
 		// ...or if there's one to the S, make this a northern half
-		else if (blockIDS == 54)
-			node.bimgoffset = (blockDataS == 3) ? 487 : 491;
+		else if (blockS.id == 54)
+			node.bimgoffset = (blockS.data == 3) ? 487 : 491;
 		// ...same deal with E/W
-		else if (blockIDW == 54)
-			node.bimgoffset = (blockDataW == 4) ? 489 : 493;
-		else if (blockIDE == 54)
-			node.bimgoffset = (blockDataE == 4) ? 490 : 494;
+		else if (blockW.id == 54)
+			node.bimgoffset = (blockW.data == 4) ? 489 : 493;
+		else if (blockE.id == 54)
+			node.bimgoffset = (blockE.data == 4) ? 490 : 494;
 	}
 	else if (blockID == 95)  // locked chest
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 		// if there's an opaque block to the W, we should face N instead
-		if (rj.blockimages.isOpaque(blockIDW, blockDataW))
+		if (rj.blockimages.isOpaque(blockW.id, blockW.data))
 			node.bimgoffset = 271;
 	}
 	else if (blockID == 101)  // iron bars
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = (blockIDN != 0 ? 0x1 : 0) | (blockIDS != 0 ? 0x2 : 0) | (blockIDE != 0 ? 0x4 : 0) | (blockIDW != 0 ? 0x8 : 0);
+		int bits = getNeighborAirMask(chunkdata, rj, ci, bi);
 		static const int ironBarOffsets[16] = {355, 419, 420, 356, 421, 357, 359, 365, 422, 358, 360, 364, 361, 363, 362, 355};
 		node.bimgoffset = ironBarOffsets[bits];
 	}
 	else if (blockID == 102)  // glass pane
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = (blockIDN != 0 ? 0x1 : 0) | (blockIDS != 0 ? 0x2 : 0) | (blockIDE != 0 ? 0x4 : 0) | (blockIDW != 0 ? 0x8 : 0);
+		int bits = getNeighborAirMask(chunkdata, rj, ci, bi);
 		static const int glassPaneOffsets[16] = {366, 423, 424, 367, 425, 368, 370, 376, 426, 369, 371, 375, 372, 374, 373, 366};
 		node.bimgoffset = glassPaneOffsets[bits];
 	}
 	else if (blockID == 132)  // tripwire
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets EW)
-		int bits = (blockIDN != 0 ? 0x1 : 0) | (blockIDS != 0 ? 0x2 : 0) | (blockIDE != 0 ? 0x4 : 0) | (blockIDW != 0 ? 0x8 : 0);
+		int bits = getNeighborAirMask(chunkdata, rj, ci, bi);
 		static const int tripwireOffsets[16] = {549, 544, 544, 544, 549, 545, 547, 553, 549, 546, 548, 552, 549, 551, 550, 543};
 		node.bimgoffset = tripwireOffsets[bits];
 	}
 	else if ((blockID == 104 || blockID == 105) && blockData == 7)  // full stem
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 		int target = (blockID == 104) ? 86 : 103;
-		if (blockIDN == target)
+		if (blockN.id == target)
 			node.bimgoffset = 403;
-		else if (blockIDS == target)
+		else if (blockS.id == target)
 			node.bimgoffset = 404;
-		else if (blockIDE == target)
+		else if (blockE.id == target)
 			node.bimgoffset = 405;
-		else if (blockIDW == target)
+		else if (blockW.id == target)
 			node.bimgoffset = 406;
 	}
 	else if (blockID == 64)  // wooden door
 	{
-		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
-		GETNEIGHBORUD(blockIDD, blockDataD, BlockIdx(0,0,-1))
-		bool isTop = blockIDD == 64;
-		uint8_t blockDataTop = isTop ? blockData : blockDataU;
-		uint8_t blockDataBottom = isTop ? blockDataD : blockData;
+		Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
+		Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
+		bool isTop = blockD.id == 64;
+		uint8_t blockDataTop = isTop ? blockData : blockU.data;
+		uint8_t blockDataBottom = isTop ? blockD.data : blockData;
 		int dir = blockDataBottom % 4;
 		if (blockDataBottom & 0x4)
 			dir = (dir + ((blockDataTop & 0x1) ? 3 : 1)) % 4;
@@ -370,11 +367,11 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if (blockID == 71)  // iron door
 	{
-		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
-		GETNEIGHBORUD(blockIDD, blockDataD, BlockIdx(0,0,-1))
-		bool isTop = blockIDD == 71;
-		uint8_t blockDataTop = isTop ? blockData : blockDataU;
-		uint8_t blockDataBottom = isTop ? blockDataD : blockData;
+		Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
+		Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
+		bool isTop = blockD.id == 71;
+		uint8_t blockDataTop = isTop ? blockData : blockU.data;
+		uint8_t blockDataBottom = isTop ? blockD.data : blockData;
 		int dir = blockDataBottom % 4;
 		if (blockDataBottom & 0x4)
 			dir = (dir + ((blockDataTop & 0x1) ? 3 : 1)) % 4;
@@ -387,18 +384,18 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	//          probably use them, too
 	if (rj.blockimages.isOpaque(node.bimgoffset))
 	{
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDD, blockDataD, BlockIdx(0,0,-1))
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
 
 		//!!!!!! neighboring blocks that aren't full height like snow and half-steps should probably produce
 		//        the drop-off effect, too
 		//!!!!!!! not to mention fully-transparent block images
-		if (blockIDS == 0)  // air
+		if (blockS.id == 0)  // air
 			node.darkenSU = true;
-		if (blockIDE == 0)  // air
+		if (blockE.id == 0)  // air
 			node.darkenEU = true;
-		if (blockIDD == 0)  // air
+		if (blockD.id == 0)  // air
 		{
 			node.darkenND = true;
 			node.darkenWD = true;

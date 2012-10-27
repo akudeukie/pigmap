@@ -22,6 +22,7 @@
 #include <string>
 #include <vector>
 #include <stdint.h>
+#include <assert.h>
 
 #include "map.h"
 #include "tables.h"
@@ -39,6 +40,10 @@ struct BlockOffset
 		x = bi.x - ci.x*16;
 		z = bi.z - ci.z*16;
 		y = bi.y;
+		
+		assert(x >= 0 && x < 16);
+		assert(y >= 0 && y < 256);
+		assert(z >= 0 && z < 16);
 	}
 };
 
