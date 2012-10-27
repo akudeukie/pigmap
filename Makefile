@@ -1,9 +1,9 @@
 objects = pigmap.o blockimages.o chunk.o map.o render.o region.o rgba.o tables.o utils.o world.o
 
 ifeq ($(mode),debug)
-	CFLAGS = -g -Wall
+	CFLAGS = -g -Wall -D_DEBUG
 else
-	CFLAGS = -O3
+	CFLAGS = -O3 -DNDEBUG
 endif
 
 pigmap : $(objects)
