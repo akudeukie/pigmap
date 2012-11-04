@@ -2012,6 +2012,25 @@ void BlockImages::setOffsets()
 	blockOffsets[offsetIdx(136, 5)] = 516;
 	blockOffsets[offsetIdx(136, 6)] = 517;
 	blockOffsets[offsetIdx(136, 7)] = 518;
+	
+	// 1.4
+	setOffsetsForID(139, 554, *this); // cobblestone wall post
+	setOffsetsForID(141, 104, *this); // carrot
+	blockOffsets[offsetIdx(141, 6)] = 106;
+	blockOffsets[offsetIdx(141, 5)] = 106;
+	blockOffsets[offsetIdx(141, 4)] = 106;
+	blockOffsets[offsetIdx(141, 3)] = 107;
+	blockOffsets[offsetIdx(141, 2)] = 107;
+	blockOffsets[offsetIdx(141, 1)] = 108;
+	blockOffsets[offsetIdx(141, 0)] = 108;
+	setOffsetsForID(142, 105, *this); // potatoe
+	blockOffsets[offsetIdx(142, 6)] = 106;
+	blockOffsets[offsetIdx(142, 5)] = 106;
+	blockOffsets[offsetIdx(142, 4)] = 106;
+	blockOffsets[offsetIdx(142, 3)] = 107;
+	blockOffsets[offsetIdx(142, 2)] = 107;
+	blockOffsets[offsetIdx(142, 1)] = 108;
+	blockOffsets[offsetIdx(142, 0)] = 108;
 }
 
 void BlockImages::checkOpacityAndTransparency(int B)
@@ -2779,6 +2798,13 @@ bool BlockImages::construct(int B, const string& terrainfile, const string& fire
 	drawVines(img, getRect(392), tiles, 143, B, true, false, true, true, false);  // vines NEW
 	drawVines(img, getRect(393), tiles, 143, B, false, true, true, true, false);  // vines SEW
 	drawVines(img, getRect(394), tiles, 143, B, true, true, true, true, false);  // vines NSEW
+	
+	// 1.4
+	drawItemBlockImage(img, getRect(104), tiles, 203, B);  // carrot level 7
+	drawItemBlockImage(img, getRect(105), tiles, 204, B);  // potato level 7
+	drawItemBlockImage(img, getRect(106), tiles, 202, B);  // carrot/potato level 6/5/4
+	drawItemBlockImage(img, getRect(107), tiles, 201, B);  // carrot/potato level 3/2
+	drawItemBlockImage(img, getRect(108), tiles, 200, B);  // carrot/potato level 1/0
 
 	return true;
 }

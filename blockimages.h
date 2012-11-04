@@ -130,11 +130,11 @@ struct BlockImages
 // 5 planks                    37 stone slab               69 UNUSED                   101 wall sign facing W
 // 6 sapling                   38 brick                    70 sign facing N/S          102 wall sign facing N
 // 7 bedrock                   39 TNT                      71 sign facing NE/SW        103 wall sign facing S
-// 8 water full/falling        40 bookshelf                72 sign facing E/W          104 UNUSED               
-// 9 water level 7             41 mossy cobblestone        73 sign facing SE/NW        105 UNUSED
-// 10 water level 6            42 obsidian                 74 wood door S side         106 UNUSED
-// 11 water level 5            43 torch floor              75 wood door N side         107 UNUSED
-// 12 water level 4            44 torch pointing S         76 wood door W side         108 UNUSED
+// 8 water full/falling        40 bookshelf                72 sign facing E/W          104 carrot level 7
+// 9 water level 7             41 mossy cobblestone        73 sign facing SE/NW        105 potato level 7
+// 10 water level 6            42 obsidian                 74 wood door S side         106 carrot/potato level 6/5/4
+// 11 water level 5            43 torch floor              75 wood door N side         107 carrot/potato level 3/2
+// 12 water level 4            44 torch pointing S         76 wood door W side         108 carrot/potato level 1/0
 // 13 water level 3            45 torch pointing N         77 wood door E side         109 UNUSED
 // 14 water level 2            46 torch pointing W         78 wood door top S          110 stone pressure plate
 // 15 water level 1            47 torch pointing E         79 wood door top N          111 iron door S side
