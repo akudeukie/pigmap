@@ -267,7 +267,7 @@ string TileIdx::toFilePath(const MapParams& mp) const
 	if (!valid(mp))
 		return string();
 	if (mp.baseZoom == 0)
-		return "base.png";
+		return "base";
 	int64_t offset = (1 << (mp.baseZoom-1));
 	int64_t gx = x + offset, gy = y + offset;
 	string s;
@@ -278,7 +278,6 @@ string TileIdx::toFilePath(const MapParams& mp) const
 		s += tostring(xbit + 2*ybit) + "/";
 	}
 	s.resize(s.size() - 1);  // drop final slash
-	s += ".png";
 	return s;
 }
 
