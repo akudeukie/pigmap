@@ -126,11 +126,6 @@ bool BlockIdx::occludes(const BlockIdx& bi) const
 	return imgxdiff <= 2 && imgydiff <= 2;
 }
 
-ChunkIdx BlockIdx::getChunkIdx() const
-{
-	return ChunkIdx(floordiv16(x), floordiv16(z));
-}
-
 BlockIdx BlockIdx::topBlock(const Pixel& p, const MapParams& mp)
 {
 	// x = 2Bbx + 2Bbz
