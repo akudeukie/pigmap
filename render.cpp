@@ -563,14 +563,16 @@ bool renderTile(const TileIdx& ti, RenderJob& rj, RGBAImage& tile)
 			if (ci != lastci)
 				chunkdata = rj.chunkcache->getData(ci);
 
-			// get block type and data
+			// get block type
 			uint16_t blockID = chunkdata->id(pcit.current);
-			uint8_t blockData = chunkdata->data(pcit.current);
-			int initialoffset = blockimages.getOffset(blockID, blockData);  // we might use a different one after checkSpecial
-			
+
 			// if this is air, move on (we *always* consider air to be transparent; it has no block image)
 			if (blockID == 0)
 				continue;
+				
+			// get the block data
+			uint8_t blockData = chunkdata->data(pcit.current);
+			int initialoffset = blockimages.getOffset(blockID, blockData);  // we might use a different one after checkSpecial
 
 			// create a node for this block
 			SceneGraphNode node(tbit.current.x + xoff, tbit.current.y + yoff, pcit.current, initialoffset);

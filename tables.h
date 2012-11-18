@@ -105,17 +105,34 @@ struct ChunkTable : private nocopy
 	ChunkGroup *chunkgroups[CTLEVEL3SIZE*CTLEVEL3SIZE];
 
 	ChunkTable() {for (int i = 0; i < CTLEVEL3SIZE*CTLEVEL3SIZE; i++) chunkgroups[i] = NULL;}
-	~ChunkTable() {for (int i = 0; i < CTLEVEL3SIZE*CTLEVEL3SIZE; i++) if (chunkgroups[i] != NULL) delete chunkgroups[i];}
+	~ChunkTable() {for (int i = 0; i < CTLEVEL3SIZE*CTLEVEL3SIZE; i++) delete chunkgroups[i];}
 
 	int chunkGroupIdx(const PosChunkIdx& ci) const {return CTGETLEVEL3(ci.z) * CTLEVEL3SIZE + CTGETLEVEL3(ci.x);}
 	ChunkGroup* getChunkGroup(const PosChunkIdx& ci) const {return chunkgroups[chunkGroupIdx(ci)];}
-	ChunkSet* getChunkSet(const PosChunkIdx& ci) const {ChunkGroup *cg = getChunkGroup(ci); return (cg == NULL) ? NULL : cg->getChunkSet(ci);}
+	ChunkSet* getChunkSet(const PosChunkIdx& ci) const
+	{
+		if (ChunkGroup *cg = getChunkGroup(ci))
+			return cg->getChunkSet(ci);
+		return NULL;
+	}
 
 	// given indices into the ChunkGroups/ChunkSets/bitset, construct a PosChunkIdx
 	static PosChunkIdx toPosChunkIdx(int cgi, int csi, int bi);
 	
-	bool isRequired(const PosChunkIdx& ci) const {ChunkSet *cs = getChunkSet(ci); return (cs == NULL) ? false : cs->bits[cs->bitIdx(ci)];}
-	int getDiskState(const PosChunkIdx& ci) const {ChunkSet *cs = getChunkSet(ci); return (cs == NULL) ? 0 : ((cs->bits[cs->bitIdx(ci)+1] ? 0x2 : 0) | (cs->bits[cs->bitIdx(ci)+2] ? 0x1 : 0));}
+	bool isRequired(const PosChunkIdx& ci) const {
+		if (ChunkSet *cs = getChunkSet(ci))
+			return cs->bits[cs->bitIdx(ci)];
+		return false
+	}
+	int getDiskState(const PosChunkIdx& ci) const
+	{
+		if (ChunkSet *cs = getChunkSet(ci))
+		{
+			int bitIdx = cs->bitIdx(ci);
+			return (cs->bits[bitIdx+1] << 1) | cs->bits[bitIdx+2];
+		}
+		return 0;
+	}
 
 	void setRequired(const PosChunkIdx& ci);
 	void setDiskState(const PosChunkIdx& ci, int state);

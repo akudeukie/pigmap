@@ -49,8 +49,7 @@ struct BlockOffset
 
 struct ChunkData
 {
-	uint8_t blockIDs[65536];  // one byte per block (only half of this space used for old-style chunks)
-	uint8_t blockAdd[32768];  // only in Anvil--extra bits for block ID (4 bits per block)
+	uint16_t blockIDs[65536];  // 8 bits in mcr format, 12 in anvil - use 16 for fast access, transform on load.
 	uint8_t blockData[32768];  // 4 bits per block (only half of this space used for old-style chunks)
 	bool anvil;  // whether this data came from an Anvil chunk or an old-style one
 
@@ -58,24 +57,11 @@ struct ChunkData
 	//  (so they only look at the lower bits)
 	uint16_t id(const BlockOffset& bo) const
 	{
-		if (!anvil)
-			return (bo.y > 127) ? 0 : blockIDs[(bo.x * 16 + bo.z) * 128 + bo.y];
-		int i = (bo.y * 16 + bo.z) * 16 + bo.x;
-		if ((i % 2) == 0)
-			return ((blockAdd[i/2] & 0xf) << 8) | blockIDs[i];
-		return ((blockAdd[i/2] & 0xf0) << 4) | blockIDs[i];
+		return blockIDs[(bo.y * 16 + bo.z) * 16 + bo.x];
 	}
 	uint8_t data(const BlockOffset& bo) const
 	{
-		int i;
-		if (!anvil)
-		{
-			if (bo.y > 127)
-				return 0;
-			i = (bo.x * 16 + bo.z) * 128 + bo.y;
-		}
-		else
-			i = (bo.y * 16 + bo.z) * 16 + bo.x;
+		int i = (bo.y * 16 + bo.z) * 16 + bo.x;
 		if ((i % 2) == 0)
 			return blockData[i/2] & 0xf;
 		return (blockData[i/2] & 0xf0) >> 4;
@@ -141,9 +127,8 @@ struct ChunkCache : private nocopy
 	ChunkCache(ChunkTable& ctable, RegionTable& rtable, RegionCache& rcache, const std::string& inpath, bool fullr, bool regform, ChunkCacheStats& st)
 		: chunktable(ctable), regiontable(rtable), stats(st), regioncache(rcache), inputpath(inpath), fullrender(fullr), regionformat(regform)
 	{
-		memset(blankdata.blockIDs, 0, 65536);
+		memset(blankdata.blockIDs, 0, 65536 * 2);
 		memset(blankdata.blockData, 0, 32768);
-		memset(blankdata.blockAdd, 0, 32768);
 		blankdata.anvil = true;
 		readbuf.reserve(262144);
 	}
