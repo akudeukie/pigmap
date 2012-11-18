@@ -122,7 +122,7 @@ struct ChunkTable : private nocopy
 	bool isRequired(const PosChunkIdx& ci) const {
 		if (ChunkSet *cs = getChunkSet(ci))
 			return cs->bits[cs->bitIdx(ci)];
-		return false
+		return false;
 	}
 	int getDiskState(const PosChunkIdx& ci) const
 	{
