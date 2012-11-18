@@ -2,6 +2,10 @@ objects = pigmap.o blockimages.o chunk.o map.o render.o region.o rgba.o tables.o
 
 ifeq ($(mode),debug)
 	CFLAGS = -g -Wall -D_DEBUG
+else ifeq ($(mode),profile)
+	CFLAGS = -Wall -O3 -DNDEBUG -pg
+else ifeq ($(mode),coverage)
+	CFLAGS = -Wall -O3 -DNDEBUG -fprofile-arcs -ftest-coverage
 else
 	CFLAGS = -Wall -O3 -DNDEBUG
 endif
