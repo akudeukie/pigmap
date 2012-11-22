@@ -214,6 +214,16 @@ void buildDependencies(SceneGraph& sg, int pcol1, int pcol2, int which)
 
 #define CONNECTFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 85 || cfid == 107)
 #define CONNECTNETHERFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 113 || cfid == 107)
+// Cobblestone wall 
+// does NOT connect with:                |    does connect with:
+// 46   TNT                              |    120 Ender Portal Frame
+// 89   Glowstone
+// 54   Chest
+// 130  Ender Chest
+// 29   Sticky Piston()()
+// 33   Piston
+#define CONNECTCOBBLESTONEWALL(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) && cfid != 46 && cfid != 89 && cfid != 54 && cfid != 130 && cfid != 29 && cfid != 33 || cfid == 139 || cfid == 107 || cfid == 120)
+#define CONNECTCOBBLESTONEWALLUP(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid != 0)
 
 // given a node that must be drawn, see if we need to do anything special to it--that is, anything that
 //  doesn't depend purely on its blockID/blockData
@@ -279,6 +289,32 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		            (CONNECTNETHERFENCE(blockIDW, blockDataW) ? 0x8 : 0);
 		if (bits != 0)
 			node.bimgoffset = 316 + bits;
+	}
+	else if (blockID == 139) // cobblestone wall
+	{
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
+		int bits = (CONNECTCOBBLESTONEWALL(blockIDN, blockDataN) ? 0x1 : 0) |
+					(CONNECTCOBBLESTONEWALL(blockIDS, blockDataS) ? 0x2 : 0) |
+					(CONNECTCOBBLESTONEWALL(blockIDE, blockDataE) ? 0x4 : 0) |
+					(CONNECTCOBBLESTONEWALL(blockIDW, blockDataW) ? 0x8 : 0);
+		// Mossy or normal cobblestone wall?
+		int imgoffset = (blockData == 1) ? 18 : 0; // difference in the tiles between cobblestone and mossy walls
+		if (bits != 0) 
+		{
+			if(CONNECTCOBBLESTONEWALLUP(blockIDU, blockDataU))
+				node.bimgoffset = 554 + bits;
+			else if (bits == 3)
+				node.bimgoffset = 570;
+			else if(bits == 12)
+				node.bimgoffset = 571;
+			else
+				node.bimgoffset = 554 + bits;
+			node.bimgoffset += imgoffset;
+		}
 	}
 	else if (blockID == 54)  // chest
 	{

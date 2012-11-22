@@ -159,7 +159,7 @@ struct BlockImages
 // 129 snow block              161 fence E                 193 stone button facing E   225 dispenser E/S
 // 130 cactus                  162 fence NE                194 wall lever facing S     226 sandstone
 // 131 clay                    163 fence SE                195 wall lever facing N     227 note block
-// 132 reeds                   164 fence NSE               196 wall lever facing W     228 UNUSED
+// 132 reeds                   164 fence NSE               196 wall lever facing W     228 command block
 // 133 jukebox                 165 fence W                 197 wall lever facing E     229 sandstone slab
 // 134 fence post              166 fence NW                198 ground lever EW         230 wooden slab
 // 135 pumpkin facing W        167 fence SW                199 ground lever NS         231 cobble slab
@@ -254,40 +254,40 @@ struct BlockImages
 // 414 closed sticky piston U  446 brick stairs inv S      478 emerald ore              510 birch stairs inv E
 // 415 closed sticky piston N  447 brick stairs inv N      479 ender chest facing W     511 jungle stairs asc S
 //
-// 512 jungle stairs asc N     544 tripwire NS
-// 513 jungle stairs asc W     545 tripwire NE
-// 514 jungle stairs asc E     546 tripwire NW
-// 515 jungle stairs inv S     547 tripwire SE
-// 516 jungle stairs inv N     548 tripwire SW
-// 517 jungle stairs inv W     549 tripwire EW
-// 518 jungle stairs inv E     550 tripwire SEW
-// 519 cocoa level 0 stem N    551 tripwire NEW
-// 520 cocoa level 0 stem S    552 tripwire NSW
-// 521 cocoa level 0 stem E    553 tripwire NSE
-// 522 cocoa level 0 stem W
-// 523 cocoa level 1 stem N
-// 524 cocoa level 1 stem S
-// 525 cocoa level 1 stem E
-// 526 cocoa level 1 stem W
-// 527 cocoa level 2 stem N
-// 528 cocoa level 2 stem S
-// 529 cocoa level 2 stem E
-// 530 cocoa level 2 stem W
-// 531 log EW
-// 532 log NS
-// 533 pine log EW
-// 534 pine log NS
-// 535 birch log EW
-// 536 birch log NS
-// 537 jungle log EW
-// 538 jungle log NS
-// 539 tripwire hook S
-// 540 tripwire hook N
-// 541 tripwire hook W
-// 542 tripwire hook E
-// 543 tripwire NSEW
+// 512 jungle stairs asc N     544 tripwire NS                   576 moss stone wall post E
+// 513 jungle stairs asc W     545 tripwire NE                   577 moss stone wall post NE
+// 514 jungle stairs asc E     546 tripwire NW                   578 moss stone wall post SE
+// 515 jungle stairs inv S     547 tripwire SE                   579 moss stone wall post NSE
+// 516 jungle stairs inv N     548 tripwire SW                   580 moss stone wall post W
+// 517 jungle stairs inv W     549 tripwire EW                   581 moss stone wall post NW
+// 518 jungle stairs inv E     550 tripwire SEW                  582 moss stone wall post SW
+// 519 cocoa level 0 stem N    551 tripwire NEW                  583 moss stone wall post NSW
+// 520 cocoa level 0 stem S    552 tripwire NSW                  584 moss stone wall post EW
+// 521 cocoa level 0 stem E    553 tripwire NSE                  585 moss stone wall post NEW
+// 522 cocoa level 0 stem W    554 cobblestone wall post         586 moss stone wall post SEW
+// 523 cocoa level 1 stem N    555 cobblestone wall post N       587 moss stone wall post NSEW
+// 524 cocoa level 1 stem S    556 cobblestone wall post S       588 moss stone wall NS
+// 525 cocoa level 1 stem E    557 cobblestone wall post NS      589 moss stone wall EW
+// 526 cocoa level 1 stem W    558 cobblestone wall post E
+// 527 cocoa level 2 stem N    559 cobblestone wall post NE
+// 528 cocoa level 2 stem S    560 cobblestone wall post SE
+// 529 cocoa level 2 stem E    561 cobblestone wall post NSE
+// 530 cocoa level 2 stem W    562 cobblestone wall post W
+// 531 log EW                  563 cobblestone wall post NW
+// 532 log NS                  564 cobblestone wall post SW
+// 533 pine log EW             565 cobblestone wall post NSW
+// 534 pine log NS             566 cobblestone wall post EW
+// 535 birch log EW            567 cobblestone wall post NEW
+// 536 birch log NS            568 cobblestone wall post SEW
+// 537 jungle log EW           569 cobblestone wall post NSEW
+// 538 jungle log NS           570 cobblestone wall NS
+// 539 tripwire hook S         571 cobblestone wall EW
+// 540 tripwire hook N         572 moss stone wall post
+// 541 tripwire hook W         573 moss stone wall post N
+// 542 tripwire hook E         574 moss stone wall post S
+// 543 tripwire NSEW           575 moss stone wall post NS
 
-#define NUMBLOCKIMAGES 554
+#define NUMBLOCKIMAGES 590
 
 
 

@@ -1315,6 +1315,234 @@ void drawFence(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, 
 	}
 }
 
+// draw cobblestone/moss wall post
+void drawStoneWallPost(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B)
+{	
+	int eightsize = B/4;
+	int quartersize = B/2;
+	int tilesize = 2*B;
+	
+	// beveled N face starts at [0,B]; draw Bx2B surface at the center of the face
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+	     dstit(drect.x, drect.y + B, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+	{
+		if (dstit.pos / tilesize > quartersize && dstit.pos / tilesize < tilesize - quartersize)
+		{
+			dest(dstit.x + quartersize, dstit.y - eightsize) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x + quartersize, dstit.y - eightsize), 0.85, 0.85, 0.85);
+		}
+	}
+	// beveled W face starts at [2B,2B]; draw Bx2B surface at the center of the face
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+	     dstit(drect.x + 2*B, drect.y + 2*B, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+	{
+		if(dstit.pos / tilesize >= quartersize && dstit.pos / tilesize < tilesize - quartersize) {
+			dest(dstit.x - quartersize, dstit.y - eightsize) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x - quartersize, dstit.y - eightsize), 0.7, 0.7, 0.7);
+		}
+	}
+	// normal U face starts at [2B-1,0]; draw BxB surface at the center of the face
+	TopFaceIterator tdstit(drect.x + 2*B-1, drect.y, tilesize);
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+	{
+		if(tdstit.pos % tilesize > quartersize && tdstit.pos % tilesize <= tilesize - quartersize && tdstit.pos / tilesize > quartersize && tdstit.pos / tilesize <= tilesize - quartersize)
+			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+	}
+}
+
+// draw solid moss/cobblestone wall
+void drawStoneWall(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, bool N, int B)
+{
+	int eightsize = B/4;
+	int quartersize = B/2;
+	int tilesize = 2*B;
+	int wallcutoff = tilesize * 0.1875;
+	
+	if(N) // cobblestone wall going NS
+	{	
+		// incomplete normal N face;
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x, drect.y + B, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+		if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
+			{
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
+			}
+		}
+		// beveled W face starts at [1.375B,1.6875B];
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + B + wallcutoff, drect.y + 2*B - (B - wallcutoff)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if(dstit.pos % tilesize >= wallcutoff) {
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
+			}
+		}
+		// beveled U face starts at [2B-1,0.375B];
+		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+		{
+			if(tdstit.pos / tilesize >= B - wallcutoff && tdstit.pos / tilesize <= B + wallcutoff)
+				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+		}
+	}
+	else // cobblestone wall going EW
+	{
+		// incomplete normal W face;
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + 2*B, drect.y + 2*B, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
+			{
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
+			}
+		}
+		// beveled N face starts at [0.625B,0.6875B];
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + B - wallcutoff, drect.y + B - (B - wallcutoff)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if (dstit.pos % tilesize >= wallcutoff)
+			{
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
+			}
+		}
+		// beveled U face starts at [2B-1,0.375B];
+		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+		{
+			int cutoff = 0;
+			if ((B - wallcutoff) % 2 == 0)
+				cutoff += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1;
+			
+			if(tdstit.pos % tilesize >= B - wallcutoff + cutoff && tdstit.pos % tilesize <= B + wallcutoff + cutoff)
+				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+		}
+	}
+}
+// draw cobblestone/moss stone post(optional) and any combination of wall rails (N/S/E/W)
+void drawStoneWallConnected(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, bool N, bool S, bool E, bool W, int B)
+{
+	// first, E and S rails, since the post should be in front of them
+	int eightsize = B/4;
+	int quartersize = B/2;
+	int tilesize = 2*B;
+	int wallcutoff = tilesize * 0.1875;
+	if (E) // draw E rail of the wall
+	{
+		// beveled N face starts at [0.625B,0.6875B]; 
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + B - wallcutoff, drect.y + B - (B - wallcutoff)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize <= B - wallcutoff)
+			{
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
+			}
+		}
+		// beveled U face starts at [2B-1,0.375B]; draw top of the E rail
+		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+		{
+			int cutoff = 0;
+			if ((B - wallcutoff) % 2 == 0)
+				cutoff += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1;
+			
+			if(tdstit.pos % tilesize >= B - wallcutoff + cutoff && tdstit.pos % tilesize <= B + wallcutoff + cutoff && tdstit.pos / tilesize < B - wallcutoff)
+				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+		}
+	}
+	if (S) // draw S rail of the wall
+	{
+		// beveled W face starts at [1.375B,1.6875B];
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + B + wallcutoff, drect.y + 2*B - (B - wallcutoff)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if(dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B + wallcutoff) {
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
+			}
+		}
+		// beveled U face starts at [2B-1,0.375B]; draw top of the S rail
+		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+		{
+			if(tdstit.pos / tilesize >= B - wallcutoff && tdstit.pos / tilesize <= B + wallcutoff && tdstit.pos % tilesize < B - wallcutoff)
+				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+		}
+	}
+
+	// now the post
+	drawStoneWallPost(dest, drect, tiles, tile, B);
+
+	// now the N and W rails
+	if (W) // draw W rail of the wall
+	{
+		// incomplete normal W face;
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + 2*B, drect.y + 2*B, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
+			{
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
+			}
+		}
+		// beveled N face starts at [0.625B,1.6875B];
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + B - wallcutoff, drect.y + B - (B - wallcutoff)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= tilesize - quartersize)
+			{
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
+			}
+		}
+		// beveled U face starts at [2B-1,0.375B]; draw top of the W rail
+		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+		{
+			int cutoff = 0;
+			if ((B - wallcutoff) % 2 == 0)
+				cutoff += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1;
+			
+			if(tdstit.pos % tilesize >= B - wallcutoff + cutoff && tdstit.pos % tilesize <= B + wallcutoff + cutoff && tdstit.pos / tilesize >= tilesize - quartersize)
+				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+		}
+	}
+	if (N) // draw N rail of the wall
+	{		
+		// incomplete normal N face;
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x, drect.y + B, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
+			{
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
+			}
+		}
+		// beveled W face starts at [1.375B,1.6875B];
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+			 dstit(drect.x + B + wallcutoff, drect.y + 2*B - (B - wallcutoff)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		{
+			if(dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize <= quartersize) {
+				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
+			}
+		}
+		// beveled U face starts at [2B-1,0.375B]; draw to of the N rail
+		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
+		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+		{
+			if(tdstit.pos / tilesize >= B - wallcutoff && tdstit.pos / tilesize <= B + wallcutoff && tdstit.pos % tilesize >= tilesize - quartersize)
+				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+		}
+	}
+}
+
 // draw crappy sign facing out towards the viewer
 void drawSign(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B)
 {
@@ -2014,7 +2242,9 @@ void BlockImages::setOffsets()
 	blockOffsets[offsetIdx(136, 7)] = 518;
 	
 	// 1.4
+	setOffsetsForID(137, 228, *this); // command block
 	setOffsetsForID(139, 554, *this); // cobblestone wall post
+	blockOffsets[offsetIdx(139, 1)] = 572; // moss stone wall post
 	setOffsetsForID(141, 104, *this); // carrot
 	blockOffsets[offsetIdx(141, 6)] = 106;
 	blockOffsets[offsetIdx(141, 5)] = 106;
@@ -2800,6 +3030,46 @@ bool BlockImages::construct(int B, const string& terrainfile, const string& fire
 	drawVines(img, getRect(394), tiles, 143, B, true, true, true, true, false);  // vines NSEW
 	
 	// 1.4
+	drawBlockImage(img, getRect(228), tiles, 184, 184, 184, B); // command block
+	
+	drawStoneWallPost(img, getRect(554), tiles, 16, B); // cobblestone wall post
+	drawStoneWallConnected(img, getRect(555), tiles, 16, true, false, false, false, B);  // cobblestone wall post N
+	drawStoneWallConnected(img, getRect(556), tiles, 16, false, true, false, false, B);  // cobblestone wall post S
+	drawStoneWallConnected(img, getRect(557), tiles, 16, true, true, false, false, B);  // cobblestone wall post NS
+	drawStoneWallConnected(img, getRect(558), tiles, 16, false, false, true, false, B);  // cobblestone wall post E
+	drawStoneWallConnected(img, getRect(559), tiles, 16, true, false, true, false, B);  // cobblestone wall post NE
+	drawStoneWallConnected(img, getRect(560), tiles, 16, false, true, true, false, B);  // cobblestone wall post SE
+	drawStoneWallConnected(img, getRect(561), tiles, 16, true, true, true, false, B);  // cobblestone wall post NSE
+	drawStoneWallConnected(img, getRect(562), tiles, 16, false, false, false, true, B);  // cobblestone wall post W
+	drawStoneWallConnected(img, getRect(563), tiles, 16, true, false, false, true, B);  // cobblestone wall post NW
+	drawStoneWallConnected(img, getRect(564), tiles, 16, false, true, false, true, B);  // cobblestone wall post SW
+	drawStoneWallConnected(img, getRect(565), tiles, 16, true, true, false, true, B);  // cobblestone wall post NSW
+	drawStoneWallConnected(img, getRect(566), tiles, 16, false, false, true, true, B);  // cobblestone wall post EW
+	drawStoneWallConnected(img, getRect(567), tiles, 16, true, false, true, true, B);  // cobblestone wall post NEW
+	drawStoneWallConnected(img, getRect(568), tiles, 16, false, true, true, true, B);  // cobblestone wall post SEW
+	drawStoneWallConnected(img, getRect(569), tiles, 16, true, true, true, true, B);  // cobblestone wall post NSEW
+	drawStoneWall(img, getRect(570), tiles, 16, true, B); // cobblestone wall NS
+	drawStoneWall(img, getRect(571), tiles, 16, false, B); // cobblestone wall EW
+	
+	drawStoneWallPost(img, getRect(572), tiles, 36, B); // moss stone wall post
+	drawStoneWallConnected(img, getRect(573), tiles, 36, true, false, false, false, B);  // moss stone wall post N
+	drawStoneWallConnected(img, getRect(574), tiles, 36, false, true, false, false, B);  // moss stone wall post S
+	drawStoneWallConnected(img, getRect(575), tiles, 36, true, true, false, false, B);  // moss stone wall post NS
+	drawStoneWallConnected(img, getRect(576), tiles, 36, false, false, true, false, B);  // moss stone wall post E
+	drawStoneWallConnected(img, getRect(577), tiles, 36, true, false, true, false, B);  // moss stone wall post NE
+	drawStoneWallConnected(img, getRect(578), tiles, 36, false, true, true, false, B);  // moss stone wall post SE
+	drawStoneWallConnected(img, getRect(579), tiles, 36, true, true, true, false, B);  // moss stone wall post NSE
+	drawStoneWallConnected(img, getRect(580), tiles, 36, false, false, false, true, B);  // moss stone wall post W
+	drawStoneWallConnected(img, getRect(581), tiles, 36, true, false, false, true, B);  // moss stone wall post NW
+	drawStoneWallConnected(img, getRect(582), tiles, 36, false, true, false, true, B);  // moss stone wall post SW
+	drawStoneWallConnected(img, getRect(583), tiles, 36, true, true, false, true, B);  // moss stone wall post NSW
+	drawStoneWallConnected(img, getRect(584), tiles, 36, false, false, true, true, B);  // moss stone wall post EW
+	drawStoneWallConnected(img, getRect(585), tiles, 36, true, false, true, true, B);  // moss stone wall post NEW
+	drawStoneWallConnected(img, getRect(586), tiles, 36, false, true, true, true, B);  // moss stone wall post SEW
+	drawStoneWallConnected(img, getRect(587), tiles, 36, true, true, true, true, B);  // moss stone wall post NSEW
+	drawStoneWall(img, getRect(588), tiles, 36, true, B); // moss stone wall NS
+	drawStoneWall(img, getRect(589), tiles, 36, false, B); // moss stone wall EW
+	
 	drawItemBlockImage(img, getRect(104), tiles, 203, B);  // carrot level 7
 	drawItemBlockImage(img, getRect(105), tiles, 204, B);  // potato level 7
 	drawItemBlockImage(img, getRect(106), tiles, 202, B);  // carrot/potato level 6/5/4
