@@ -144,7 +144,7 @@ struct BlockImages
 // 19 lava level 1             51 wood stairs asc N        83 ladder W side            115 iron door top S
 // 20 sand                     52 wood stairs asc W        84 ladder N side            116 iron door top N
 // 21 UNUSED                   53 wood stairs asc E        85 ladder S side            117 iron door top W
-// 22 gold ore                 54 UNUSED                   86 track EW                 118 iron door top E
+// 22 gold ore                 54 beacon                   86 track EW                 118 iron door top E
 // 23 iron ore                 55 redstone wire NSEW       87 track NS                 119 wood pressure plate
 // 24 coal ore                 56 diamond ore              88 UNUSED                   120 redstone ore
 // 25 log                      57 diamond block            89 UNUSED                   121 red torch floor off
@@ -176,10 +176,10 @@ struct BlockImages
 // 146 red torch N off         178 water missing W         210 gray wool               242 repeater on E
 // 147 red torch E off         179 water missing N         211 light gray wool         243 repeater on W
 // 148 red torch W off         180 ice surface             212 cyan wool               244 repeater off N
-// 149 UNUSED                  181 ice missing W           213 purple wool             245 repeater off S
-// 150 UNUSED                  182 ice missing N           214 blue wool               246 repeater off E
-// 151 UNUSED                  183 furnace W               215 brown wool              247 repeater off W
-// 152 UNUSED                  184 furnace N               216 green wool              248 pine leaves
+// 149 wooden button facing S  181 ice missing W           213 purple wool             245 repeater off S
+// 150 wooden button facing N  182 ice missing N           214 blue wool               246 repeater off E
+// 151 wooden button facing W  183 furnace W               215 brown wool              247 repeater off W
+// 152 wooden button facing E  184 furnace N               216 green wool              248 pine leaves
 // 153 pumpkin facing E/S      185 furnace E/S             217 red wool                249 birch leaves
 // 154 pumpkin facing N        186 lit furnace W           218 black wool              250 pine sapling
 // 155 jack-o-lantern E/S      187 lit furnace N           219 pine log                251 birch sapling
@@ -268,12 +268,12 @@ struct BlockImages
 // 523 cocoa level 1 stem N    555 cobblestone wall post N       587 moss stone wall post NSEW
 // 524 cocoa level 1 stem S    556 cobblestone wall post S       588 moss stone wall NS
 // 525 cocoa level 1 stem E    557 cobblestone wall post NS      589 moss stone wall EW
-// 526 cocoa level 1 stem W    558 cobblestone wall post E
-// 527 cocoa level 2 stem N    559 cobblestone wall post NE
-// 528 cocoa level 2 stem S    560 cobblestone wall post SE
-// 529 cocoa level 2 stem E    561 cobblestone wall post NSE
-// 530 cocoa level 2 stem W    562 cobblestone wall post W
-// 531 log EW                  563 cobblestone wall post NW
+// 526 cocoa level 1 stem W    558 cobblestone wall post E       590 anvil NS
+// 527 cocoa level 2 stem N    559 cobblestone wall post NE      591 slightly damaged anvil NS
+// 528 cocoa level 2 stem S    560 cobblestone wall post SE      592 very damaged anvil NS
+// 529 cocoa level 2 stem E    561 cobblestone wall post NSE     593 anvil EW
+// 530 cocoa level 2 stem W    562 cobblestone wall post W       594 slightly damaged anvil EW
+// 531 log EW                  563 cobblestone wall post NW      595 very damaged anvil EW
 // 532 log NS                  564 cobblestone wall post SW
 // 533 pine log EW             565 cobblestone wall post NSW
 // 534 pine log NS             566 cobblestone wall post EW
@@ -287,7 +287,7 @@ struct BlockImages
 // 542 tripwire hook E         574 moss stone wall post S
 // 543 tripwire NSEW           575 moss stone wall post NS
 
-#define NUMBLOCKIMAGES 590
+#define NUMBLOCKIMAGES 596
 
 
 
