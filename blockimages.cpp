@@ -1637,7 +1637,7 @@ void drawBeacon(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles,
 	}
 	
 	// blit glass over the drawn beacon heart
-	alphablit(dest, glassrect, dest, drect.w * (54 % 16), drect.h * (54 / 16));
+	alphablit(dest, glassrect, dest, drect.x, drect.y);
 }
 
 // draw oriented anvil; orientation = 0 for NS, 1 - EW orientation
@@ -1680,9 +1680,40 @@ void drawAnvil(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, 
 		}
 	}
 	
-	// draw anvil pillar (oriented)
+	// draw anvil second base (oriented)
 	int noffset = 0;
 	int woffset = 0;
+	if(orientation == 0)
+	{
+		noffset = anvilfaceoffset;
+		woffset = eightsize + anvilfaceoffset;
+	}
+	else
+	{
+		noffset = eightsize + anvilfaceoffset;
+		woffset = anvilfaceoffset;
+	}
+	// beveled N face
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+	     dstit(drect.x + woffset, drect.y + B - woffset/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+	{
+		if (dstit.pos % tilesize >= tilesize - eightsize - anvilfaceoffset && dstit.pos % tilesize <= tilesize - quartersize && dstit.pos / tilesize >= noffset && dstit.pos / tilesize < tilesize - noffset)
+		{
+			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
+		}
+	}
+	// beveled W face
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+	     dstit(drect.x + 2*B - noffset, drect.y + 2*B - noffset/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+	{
+		if(dstit.pos % tilesize >= tilesize - eightsize - anvilfaceoffset && dstit.pos % tilesize <= tilesize - quartersize && dstit.pos / tilesize >= woffset && dstit.pos / tilesize <= tilesize - woffset) {
+			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
+		}
+	}
+	
+	// draw anvil pillar (oriented)
 	if(orientation == 0)
 	{
 		noffset = 0;
@@ -1697,7 +1728,7 @@ void drawAnvil(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, 
 	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
 	     dstit(drect.x + quartersize + woffset, drect.y + B - (quartersize + woffset)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
 	{
-		if (dstit.pos % tilesize >= quartersize + eightsize && dstit.pos % tilesize < tilesize - quartersize && dstit.pos / tilesize >= quartersize + noffset && dstit.pos / tilesize < tilesize - quartersize - noffset)
+		if (dstit.pos % tilesize >= quartersize + eightsize && dstit.pos % tilesize < tilesize - eightsize - anvilfaceoffset && dstit.pos / tilesize >= quartersize + noffset && dstit.pos / tilesize < tilesize - quartersize - noffset)
 		{
 			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
 			darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
@@ -1707,7 +1738,7 @@ void drawAnvil(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, 
 	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
 	     dstit(drect.x + 2*B - quartersize - noffset, drect.y + 2*B - (quartersize + noffset)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
 	{
-		if(dstit.pos % tilesize >= quartersize + eightsize && dstit.pos % tilesize < tilesize - quartersize && dstit.pos / tilesize >= quartersize + woffset && dstit.pos / tilesize < tilesize - quartersize - woffset) {
+		if(dstit.pos % tilesize >= quartersize + eightsize && dstit.pos % tilesize < tilesize - eightsize - anvilfaceoffset && dstit.pos / tilesize >= quartersize + woffset && dstit.pos / tilesize < tilesize - quartersize - woffset) {
 			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
 			darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
 		}
