@@ -454,6 +454,17 @@ SourceTile terrainTile(const RGBAImage& tiles, int tile)
 
 
 
+int deinterpolate(int targetj, int srcrange, int destrange)
+{
+	for (int i = 0; i < destrange; i++)
+	{
+		int j = interpolate(i, destrange, srcrange);
+		if (j >= targetj)
+			return i;
+	}
+	return destrange - 1;
+}
+
 // draw a normal block image, using three terrain tiles (which may be flipped/rotated/missing), and adding a bit of shadow
 //  to the N and W faces
 void drawRotatedBlockImage(RGBAImage& dest, const ImageRect& drect, const SourceTile& Nface, const SourceTile& Wface, const SourceTile& Uface, int B)
@@ -1315,177 +1326,107 @@ void drawFence(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, 
 	}
 }
 
-// draw cobblestone/moss wall post
-void drawStoneWallPost(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B)
-{	
-	int eightsize = B/4;
-	int quartersize = B/2;
-	int tilesize = 2*B;
-	
-	// beveled N face starts at [0,B]; draw Bx2B surface at the center of the face
+// generic functions for drawing separate faces with offsets and cutoffs
+// - tint: controls how much face is darkened
+// - offset: controls how far face is offset from original cube position inwards
+// - croptop: controls how much of the face is cropped from the top
+// - cropbottom: controls how much of the face is cropped from the bottom
+// - cropleft: controls how much of the face is cropped from the left
+// - cropright: controls how much of the face is cropped from the right
+void drawOffsetPaddedNFace(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B, double tint, int offset, int croptop, int cropbottom, int cropleft, int cropright) 
+{
+	int tilesize = 2 * B;
+	// draw N face
 	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x, drect.y + B, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+		 dstit(drect.x + offset, drect.y + B - deinterpolate(offset, 2*tilesize, tilesize), 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
 	{
-		if (dstit.pos / tilesize > quartersize && dstit.pos / tilesize < tilesize - quartersize)
+		if (dstit.pos % tilesize >= croptop && dstit.pos % tilesize < tilesize - cropbottom && dstit.pos / tilesize >= cropleft && dstit.pos / tilesize < tilesize - cropright)
 		{
-			dest(dstit.x + quartersize, dstit.y - eightsize) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x + quartersize, dstit.y - eightsize), 0.85, 0.85, 0.85);
+			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x, dstit.y), tint, tint, tint);
 		}
 	}
-	// beveled W face starts at [2B,2B]; draw Bx2B surface at the center of the face
+}
+void drawOffsetPaddedWFace(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B, double tint, int offset, int croptop, int cropbottom, int cropleft, int cropright) 
+{
+	int tilesize = 2 * B;
+	// draw W face
 	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + 2*B, drect.y + 2*B, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+	     dstit(drect.x + 2*B - offset, drect.y + 2*B - deinterpolate(offset, 2*tilesize, tilesize), -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
 	{
-		if(dstit.pos / tilesize >= quartersize && dstit.pos / tilesize < tilesize - quartersize) {
-			dest(dstit.x - quartersize, dstit.y - eightsize) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x - quartersize, dstit.y - eightsize), 0.7, 0.7, 0.7);
+		if(dstit.pos % tilesize >= croptop && dstit.pos % tilesize < tilesize - cropbottom && dstit.pos / tilesize >= cropleft && dstit.pos / tilesize < tilesize - cropright) {
+			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x, dstit.y), tint, tint, tint);
 		}
 	}
-	// normal U face starts at [2B-1,0]; draw BxB surface at the center of the face
-	TopFaceIterator tdstit(drect.x + 2*B-1, drect.y, tilesize);
+}
+void drawOffsetPaddedUFace(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B, int offset, int croptop, int cropbottom, int cropleft, int cropright) 
+{
+	int tilesize = 2 * B;
+	// draw U face
+	TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + offset, tilesize);
 	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
 	{
 		int adjust = 0;
-		if (quartersize % 2 == 1)
+		if (croptop % 2 == 0)
 			adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-		if(tdstit.pos % tilesize > quartersize + adjust && tdstit.pos % tilesize <= tilesize - quartersize + adjust && tdstit.pos / tilesize > quartersize && tdstit.pos / tilesize <= tilesize - quartersize)
+		if(tdstit.pos % tilesize >= croptop + adjust && tdstit.pos % tilesize < tilesize - cropbottom + adjust && tdstit.pos / tilesize >= cropleft && tdstit.pos / tilesize < tilesize - cropright)
 			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
 	}
+}
+
+// draw cobblestone/moss wall post
+void drawStoneWallPost(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B)
+{	
+	int tilesize = 2*B;
+	
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_4_16, 0, 0, CUTOFF_4_16, CUTOFF_4_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_4_16, 0, 0, CUTOFF_4_16, CUTOFF_4_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 0, CUTOFF_4_16, CUTOFF_4_16, CUTOFF_4_16, CUTOFF_4_16); // offset U face
 }
 
 // draw solid moss/cobblestone wall
 void drawStoneWall(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, bool N, int B)
 {
-	int eightsize = B/4;
-	int quartersize = B/2;
 	int tilesize = 2*B;
-	int wallcutoff = tilesize * 0.1875;
+	
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // wall cutoff
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // wall offset
 	
 	if(N) // cobblestone wall going NS
 	{	
-		// incomplete normal N face;
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x, drect.y + B, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-		if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
-			{
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-			}
-		}
-		// beveled W face starts at [1.375B,1.6875B];
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + B + wallcutoff, drect.y + 2*B - (B - wallcutoff)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if(dstit.pos % tilesize >= wallcutoff) {
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-			}
-		}
-		// beveled U face starts at [2B-1,0.375B];
-		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-		{
-			if(tdstit.pos / tilesize >= B - wallcutoff && tdstit.pos / tilesize <= B + wallcutoff)
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-		}
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_5_16, CUTOFF_3_16, 0, 0, 0); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, 0, -1, CUTOFF_5_16, CUTOFF_5_16); // offset U face
 	}
 	else // cobblestone wall going EW
 	{
-		// incomplete normal W face;
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + 2*B, drect.y + 2*B, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
-			{
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-			}
-		}
-		// beveled N face starts at [0.625B,0.6875B];
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + B - wallcutoff, drect.y + B - (B - wallcutoff)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if (dstit.pos % tilesize >= wallcutoff)
-			{
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-			}
-		}
-		// beveled U face starts at [2B-1,0.375B];
-		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-		{
-			int adjustA = 0;
-			if ((B - wallcutoff) % 2 == 0)
-				adjustA += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-			int adjustB = 0;
-			if ((B - wallcutoff) % 2 == 1)
-				adjustB += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1;
-			if(tdstit.pos % tilesize >= B - wallcutoff + adjustA && tdstit.pos % tilesize < B + wallcutoff + adjustB)
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-			else if(tdstit.pos % tilesize == B + wallcutoff + adjustB && tdstit.pos / tilesize != 0)
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-		}
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_3_16, 0, 0, 0); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, CUTOFF_5_16, CUTOFF_5_16, 0, 0); // offset U face
 	}
 }
 // draw cobblestone/moss stone post(optional) and any combination of wall rails (N/S/E/W)
 void drawStoneWallConnected(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, bool N, bool S, bool E, bool W, int B)
 {
-	// first, E and S rails, since the post should be in front of them
-	int eightsize = B/4;
-	int quartersize = B/2;
 	int tilesize = 2*B;
-	int wallcutoff = tilesize * 0.1875;
+	
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // wall cutoff
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // wall offset
+	
+	// first, E and S rails, since the post should be in front of them
 	if (E) // draw E rail of the wall
 	{
-		// beveled N face starts at [0.625B,0.6875B]; 
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + B - wallcutoff, drect.y + B - (B - wallcutoff)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize <= B - wallcutoff)
-			{
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-			}
-		}
-		// beveled U face starts at [2B-1,0.375B]; draw top of the E rail
-		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-		{
-			int adjustA = 0;
-			if ((B - wallcutoff) % 2 == 0)
-				adjustA += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-			int adjustB = 0;
-			if ((B - wallcutoff) % 2 == 1)
-				adjustB += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1;
-			if(tdstit.pos % tilesize >= B - wallcutoff + adjustA && tdstit.pos % tilesize < B + wallcutoff + adjustB && tdstit.pos / tilesize <= B - wallcutoff)
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-			else if(tdstit.pos % tilesize == B + wallcutoff + adjustB && tdstit.pos / tilesize <= B - wallcutoff && tdstit.pos / tilesize != 0) // exclude first overflowing pixel
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-		}
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_3_16, 0, 0, tilesize - CUTOFF_4_16); // offset N face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, CUTOFF_5_16, CUTOFF_5_16, 0, tilesize - CUTOFF_4_16); // offset U face
 	}
 	if (S) // draw S rail of the wall
 	{
-		// beveled W face starts at [1.375B,1.6875B];
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + B + wallcutoff, drect.y + 2*B - (B - wallcutoff)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if(dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B + wallcutoff) {
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-			}
-		}
-		// beveled U face starts at [2B-1,0.375B]; draw top of the S rail
-		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-		{
-			int adjust = 0;
-			if ((B - wallcutoff) % 2 == 0)
-				adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-			if(tdstit.pos / tilesize >= B - wallcutoff && tdstit.pos / tilesize <= B + wallcutoff && tdstit.pos % tilesize < B - wallcutoff + adjust)
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-		}
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_5_16, CUTOFF_3_16, 0, tilesize - CUTOFF_4_16, 0); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, 0, tilesize - CUTOFF_4_16, CUTOFF_5_16, CUTOFF_5_16); // offset U face
 	}
 
 	// now the post
@@ -1494,147 +1435,37 @@ void drawStoneWallConnected(RGBAImage& dest, const ImageRect& drect, const RGBAI
 	// now the N and W rails
 	if (W) // draw W rail of the wall
 	{
-		// incomplete normal W face;
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + 2*B, drect.y + 2*B, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
-			{
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-			}
-		}
-		// beveled N face starts at [0.625B,1.6875B];
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + B - wallcutoff, drect.y + B - (B - wallcutoff)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= tilesize - quartersize)
-			{
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-			}
-		}
-		// beveled U face starts at [2B-1,0.375B]; draw top of the W rail
-		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-		{
-			int adjustA = 0;
-			if ((B - wallcutoff) % 2 == 0)
-				adjustA += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-			int adjustB = 0;
-			if ((B - wallcutoff) % 2 == 1)
-				adjustB += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; 
-			if(tdstit.pos % tilesize >= B - wallcutoff + adjustA && tdstit.pos % tilesize < B + wallcutoff + adjustB && tdstit.pos / tilesize >= tilesize - quartersize)
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-			else if(tdstit.pos % tilesize == B + wallcutoff + adjustB && tdstit.pos / tilesize >= tilesize - quartersize && tdstit.pos / tilesize != 0) // exclude first overflowing pixel
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-		}
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_3_16, 0, tilesize - CUTOFF_4_16, 0); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, CUTOFF_5_16, CUTOFF_5_16, tilesize - CUTOFF_4_16, 0); // offset U face
 	}
 	if (N) // draw N rail of the wall
 	{		
-		// incomplete normal N face;
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x, drect.y + B, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if (dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize >= B - wallcutoff && dstit.pos / tilesize < B + wallcutoff)
-			{
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-			}
-		}
-		// beveled W face starts at [1.375B,1.6875B];
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-			 dstit(drect.x + B + wallcutoff, drect.y + 2*B - (B - wallcutoff)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-		{
-			if(dstit.pos % tilesize >= wallcutoff && dstit.pos / tilesize <= quartersize) {
-				dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-				darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-			}
-		}
-		// beveled U face starts at [2B-1,0.375B]; draw to of the N rail
-		TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + wallcutoff, tilesize);
-		for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-		{
-			int adjust = 0;
-			if ((tilesize - quartersize) % 2 == 0)
-				adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-			if(tdstit.pos / tilesize >= B - wallcutoff && tdstit.pos / tilesize <= B + wallcutoff && tdstit.pos % tilesize >= tilesize - quartersize + adjust)
-				dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-		}
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_5_16, CUTOFF_3_16, 0, 0, tilesize - CUTOFF_4_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, tilesize - CUTOFF_4_16, -1, CUTOFF_5_16, CUTOFF_5_16); // offset U face
 	}
 }
 
 // draw heart of the beacon
 void drawBeacon(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int pedestalTile, int heartTile,  const ImageRect& glassrect, int B)
 {
-	int eightsize = B/4;
 	int tilesize = 2*B;
-	int pedestalheight = 0.1875 * tilesize;
-	int heartoffset = 0.375 * tilesize/2;
+	
+	int CUTOFF_2_16 = deinterpolate(2, 16, tilesize); // eighth
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // pedestal height, heart offset
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // heart width
 	
 	// draw obsidion pedestal
-	
-	// beveled N face
-	for (FaceIterator srcit((pedestalTile%16)*tilesize, (pedestalTile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + eightsize + 1, drect.y + B - eightsize/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if (dstit.pos % tilesize >= tilesize - pedestalheight && dstit.pos / tilesize >= eightsize && dstit.pos / tilesize < tilesize - eightsize)
-		{
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.9, 0.9, 0.9);
-		}
-	}
-	// beveled W face
-	for (FaceIterator srcit((pedestalTile%16)*tilesize, (pedestalTile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + 2*B - eightsize - 1, drect.y + 2*B - eightsize/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if(dstit.pos % tilesize >= tilesize - pedestalheight && dstit.pos / tilesize >= eightsize && dstit.pos / tilesize <= tilesize - eightsize) {
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.8, 0.8, 0.8);
-		}
-	}
-	// normal U face starts at [2B-1,2B - pedestalheight]; draw BxB surface at the center of the face
-	TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + 2*B - pedestalheight, tilesize);
-	for (FaceIterator srcit((pedestalTile%16)*tilesize, (pedestalTile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-	{
-		int adjust = 0;
-		if (eightsize % 2 == 0)
-			adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-		if(tdstit.pos % tilesize >= eightsize + adjust && tdstit.pos % tilesize < tilesize - eightsize + adjust && tdstit.pos / tilesize >= eightsize && tdstit.pos / tilesize < tilesize - eightsize)
-			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-	}
+	drawOffsetPaddedNFace(dest, drect, tiles, pedestalTile, B, 0.9, CUTOFF_2_16, tilesize - CUTOFF_3_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, pedestalTile, B, 0.8, CUTOFF_2_16, tilesize - CUTOFF_3_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, pedestalTile, B, 2*B - CUTOFF_3_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16); // offset U face
 	
 	// draw nether star heart
-	
-	// beveled N face
-	for (FaceIterator srcit((heartTile%16)*tilesize, (heartTile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + heartoffset, drect.y + B - heartoffset/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if (dstit.pos % tilesize >= heartoffset && dstit.pos % tilesize < tilesize - heartoffset && dstit.pos / tilesize >= heartoffset && dstit.pos / tilesize < tilesize - heartoffset)
-		{
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.9, 0.9, 0.9);
-		}
-	}
-	// beveled W face
-	for (FaceIterator srcit((heartTile%16)*tilesize, (heartTile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + 2*B - heartoffset, drect.y + 2*B - heartoffset/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if(dstit.pos % tilesize >= heartoffset && dstit.pos % tilesize < tilesize - heartoffset && dstit.pos / tilesize >= heartoffset && dstit.pos / tilesize < tilesize - heartoffset) {
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.8, 0.8, 0.8);
-		}
-	}
-	// normal U face starts at [2B-1,2B - pedestalheight]; draw BxB surface at the center of the face
-	tdstit = TopFaceIterator(drect.x + 2*B-1, drect.y + heartoffset, tilesize);
-	for (FaceIterator srcit((heartTile%16)*tilesize, (heartTile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-	{
-		int adjust = 0;
-		if (heartoffset % 2 == 0)
-			adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-		if(tdstit.pos % tilesize >= heartoffset + adjust && tdstit.pos % tilesize < tilesize - heartoffset + adjust && tdstit.pos / tilesize >= heartoffset && tdstit.pos / tilesize < tilesize - heartoffset)
-			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-	}
+	drawOffsetPaddedNFace(dest, drect, tiles, heartTile, B, 0.9, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, heartTile, B, 0.8, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, heartTile, B, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16); // offset U face
 	
 	// blit glass over the drawn beacon heart
 	alphablit(dest, glassrect, dest, drect.x, drect.y);
@@ -1644,158 +1475,110 @@ void drawBeacon(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles,
 // function does ignore the fact, that anvil facing N is different from one facing S; though difference is so insignificant, that it is deliberately omitted
 void drawAnvil(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int faceTile, int orientation, int B)
 {
-	int eightsize = B/4;
-	int quartersize = B/2;
 	int tilesize = 2*B;
-	int anvilfaceoffset = 3*B/8;
+	
+	int CUTOFF_2_16 = deinterpolate(2, 16, tilesize); // base crop
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // second base crop, face crop
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // second base crop on another side, pillar crop
+	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // pillar height crops
+	int CUTOFF_10_16 = deinterpolate(10, 16, tilesize); // face crop (from bottom)
 	
 	// draw anvil base (orientation independent)
-	// normal U face starts at [2B-1,2B - quartersize]; draw BxB surface at the center of the face
-	TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + 2*B - quartersize, tilesize);
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-	{
-		int adjust = 0;
-		if (eightsize % 2 == 0)
-			adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-		if(tdstit.pos % tilesize >= eightsize + adjust && tdstit.pos % tilesize <= tilesize - eightsize + adjust && tdstit.pos / tilesize >= eightsize && tdstit.pos / tilesize <= tilesize - eightsize)
-			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-	}
-	// beveled N face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + eightsize, drect.y + B - eightsize/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if (dstit.pos % tilesize >= tilesize - quartersize && dstit.pos / tilesize >= eightsize && dstit.pos / tilesize < tilesize - eightsize)
-		{
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-		}
-	}
-	// beveled W face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + 2*B - eightsize, drect.y + 2*B - eightsize/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if(dstit.pos % tilesize >= tilesize - quartersize && dstit.pos / tilesize >= eightsize && dstit.pos / tilesize <= tilesize - eightsize) {
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-		}
-	}
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 2*B - CUTOFF_4_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16); // offset U face
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, CUTOFF_2_16, tilesize - CUTOFF_4_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, CUTOFF_2_16, tilesize - CUTOFF_4_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset W face
 	
 	// draw anvil second base (oriented)
 	int noffset = 0;
 	int woffset = 0;
 	if(orientation == 0)
 	{
-		noffset = anvilfaceoffset;
-		woffset = eightsize + anvilfaceoffset;
+		noffset = CUTOFF_3_16;
+		woffset = CUTOFF_5_16;
 	}
 	else
 	{
-		noffset = eightsize + anvilfaceoffset;
-		woffset = anvilfaceoffset;
+		noffset = CUTOFF_5_16;
+		woffset = CUTOFF_3_16;
 	}
-	// beveled N face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + woffset, drect.y + B - woffset/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if (dstit.pos % tilesize >= tilesize - eightsize - anvilfaceoffset && dstit.pos % tilesize <= tilesize - quartersize && dstit.pos / tilesize >= noffset && dstit.pos / tilesize < tilesize - noffset)
-		{
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-		}
-	}
-	// beveled W face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + 2*B - noffset, drect.y + 2*B - noffset/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if(dstit.pos % tilesize >= tilesize - eightsize - anvilfaceoffset && dstit.pos % tilesize <= tilesize - quartersize && dstit.pos / tilesize >= woffset && dstit.pos / tilesize <= tilesize - woffset) {
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-		}
-	}
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 2*B - CUTOFF_5_16, woffset, woffset, noffset, noffset); // offset U face
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, woffset, tilesize - CUTOFF_5_16, CUTOFF_4_16, noffset, noffset); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, noffset, tilesize - CUTOFF_5_16, CUTOFF_4_16, woffset, woffset); // offset W face
 	
 	// draw anvil pillar (oriented)
 	if(orientation == 0)
 	{
 		noffset = 0;
-		woffset = eightsize;
+		woffset = CUTOFF_2_16;
 	}
 	else
 	{
-		noffset = eightsize;
+		noffset = CUTOFF_2_16;
 		woffset = 0;
 	}
-	// beveled N face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + quartersize + woffset, drect.y + B - (quartersize + woffset)/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if (dstit.pos % tilesize >= quartersize + eightsize && dstit.pos % tilesize < tilesize - eightsize - anvilfaceoffset && dstit.pos / tilesize >= quartersize + noffset && dstit.pos / tilesize < tilesize - quartersize - noffset)
-		{
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-		}
-	}
-	// beveled W face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + 2*B - quartersize - noffset, drect.y + 2*B - (quartersize + noffset)/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if(dstit.pos % tilesize >= quartersize + eightsize && dstit.pos % tilesize < tilesize - eightsize - anvilfaceoffset && dstit.pos / tilesize >= quartersize + woffset && dstit.pos / tilesize < tilesize - quartersize - woffset) {
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-		}
-	}
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, CUTOFF_4_16 + woffset, CUTOFF_6_16, CUTOFF_5_16, CUTOFF_4_16 + noffset, CUTOFF_4_16 + noffset); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, CUTOFF_4_16 + noffset, CUTOFF_6_16, CUTOFF_5_16, CUTOFF_4_16 + woffset, CUTOFF_4_16 + woffset); // offset W face
 	
 	// draw anvil face (oriented)
 	if(orientation == 0)
 	{
 		noffset = 0;
-		woffset = anvilfaceoffset;
+		woffset = CUTOFF_3_16;
 	}
 	else
 	{
-		noffset = anvilfaceoffset;
+		noffset = CUTOFF_3_16;
 		woffset = 0;
 	}
-	// draw U face
 	int rot = 0;
 	if(orientation == 0)
 		rot = 1;
 	else
 		rot = 0;
 	// draw U bottom layer (cropped-texture-fix)
-	tdstit = TopFaceIterator(drect.x + 2*B-1, drect.y, tilesize);
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
-	{
-		int adjust = 0;
-		if (woffset % 2 == 0)
-			adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
-		if(tdstit.pos % tilesize >= woffset + adjust && tdstit.pos % tilesize <= tilesize - woffset + adjust && tdstit.pos / tilesize >= noffset && tdstit.pos / tilesize <= tilesize - noffset)
-			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
-	}
-	tdstit = TopFaceIterator(drect.x + 2*B-1, drect.y, tilesize);
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 0, woffset, woffset, noffset, noffset); // cropped U face
+	
+	// draw U face
+	TopFaceIterator tdstit = TopFaceIterator(drect.x + 2*B-1, drect.y, tilesize);
 	for (RotatedFaceIterator srcit((faceTile%16)*tilesize, (faceTile/16)*tilesize, rot, tilesize, 0); !srcit.end; srcit.advance(), tdstit.advance())
 	{	
 		if(ALPHA(tiles(srcit.x, srcit.y)) != 0)
 			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
 	}
-	// beveled N face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + woffset, drect.y + B - woffset/2, 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if (dstit.pos % tilesize < quartersize + eightsize && dstit.pos / tilesize >= noffset && dstit.pos / tilesize < tilesize - noffset)
-		{
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.85, 0.85, 0.85);
-		}
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, woffset, 0, CUTOFF_10_16, noffset, noffset); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, noffset, 0, CUTOFF_10_16, woffset, woffset); // offset W face
+}
+
+// draw empty flower pot
+void drawFlowerPot(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int dirtTile, int contentTile, int contentType, int B)
+{
+	int tilesize = 2*B;
+	
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // offset, side crop
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // offset, side crop
+	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // dirt crop
+	int CUTOFF_10_16 = deinterpolate(10, 16, tilesize); // top crop
+	int CUTOFF_11_16 = deinterpolate(11, 16, tilesize); // inner side offset
+	int CUTOFF_12_16 = deinterpolate(12, 16, tilesize); // dirt offset
+	
+	// draw background pot faces
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.9, CUTOFF_11_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_11_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, dirtTile, B, CUTOFF_12_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // cropped U face
+	// draw cactus, if possible
+	if(contentTile != -1 && contentType == 1) {
+		drawOffsetPaddedNFace(dest, drect, tiles, contentTile, B, 0.9, CUTOFF_6_16, 0, CUTOFF_4_16, CUTOFF_6_16, CUTOFF_6_16); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, contentTile, B, 0.8, CUTOFF_6_16, 0, CUTOFF_4_16, CUTOFF_6_16, CUTOFF_6_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, contentTile, B, 0, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // cropped U face
 	}
-	// beveled W face
-	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
-	     dstit(drect.x + 2*B - noffset, drect.y + 2*B - noffset/2, -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
-	{
-		if(dstit.pos % tilesize < quartersize + eightsize && dstit.pos / tilesize >= woffset && dstit.pos / tilesize < tilesize - woffset) {
-			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
-			darken(dest(dstit.x, dstit.y), 0.7, 0.7, 0.7);
-		}
-	}
+	// draw front pot faces
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.9, CUTOFF_5_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+	
+	// draw multipart/sprite contents of the pot
+	if(contentTile != -1 && contentType == 0)
+		drawItemBlockImage(dest, ImageRect(drect.x, drect.y - CUTOFF_4_16, drect.w, drect.h), tiles, contentTile, B);
 }
 
 // draw crappy sign facing out towards the viewer
@@ -2501,6 +2284,18 @@ void BlockImages::setOffsets()
 	setOffsetsForID(138, 54, *this); // beacon
 	setOffsetsForID(139, 554, *this); // cobblestone wall post
 	blockOffsets[offsetIdx(139, 1)] = 572; // moss stone wall post
+	setOffsetsForID(140, 596, *this); // flower pot
+	blockOffsets[offsetIdx(140, 1)] = 597; // flower pot [rose]
+	blockOffsets[offsetIdx(140, 2)] = 598; // flower pot [dandelion]
+	blockOffsets[offsetIdx(140, 3)] = 599; // flower pot [oak sapling]
+	blockOffsets[offsetIdx(140, 4)] = 600; // flower pot [spruce sapling]
+	blockOffsets[offsetIdx(140, 5)] = 601; // flower pot [birch sapling]
+	blockOffsets[offsetIdx(140, 6)] = 602; // flower pot [jungle tree sapling]
+	blockOffsets[offsetIdx(140, 7)] = 603; // flower pot [red mushroom]
+	blockOffsets[offsetIdx(140, 8)] = 604; // flower pot [brown mushroom]
+	blockOffsets[offsetIdx(140, 9)] = 605; // flower pot [cactus]
+	blockOffsets[offsetIdx(140, 10)] = 606; // flower pot [dead bush]
+	blockOffsets[offsetIdx(140, 11)] = 607; // flower pot [rose]
 	setOffsetsForID(141, 104, *this); // carrot
 	blockOffsets[offsetIdx(141, 6)] = 106;
 	blockOffsets[offsetIdx(141, 5)] = 106;
@@ -2627,17 +2422,6 @@ void BlockImages::retouchAlphas(int B)
 				setAlpha(img(it.x, it.y), 255);
 		}
 	}
-}
-
-int deinterpolate(int targetj, int srcrange, int destrange)
-{
-	for (int i = 0; i < destrange; i++)
-	{
-		int j = interpolate(i, destrange, srcrange);
-		if (j >= targetj)
-			return i;
-	}
-	return destrange - 1;
 }
 
 bool BlockImages::construct(int B, const string& terrainfile, const string& firefile, const string& endportalfile, const string& chestfile, const string& largechestfile, const string& enderchestfile)
@@ -3252,8 +3036,8 @@ bool BlockImages::construct(int B, const string& terrainfile, const string& fire
 	drawFence(img, getRect(329), tiles, 224, true, false, true, true, true, B);  // nether fence NEW
 	drawFence(img, getRect(330), tiles, 224, false, true, true, true, true, B);  // nether fence SEW
 	drawFence(img, getRect(331), tiles, 224, true, true, true, true, true, B);  // nether fence NSEW
-	drawFence(img, getRect(346), tiles, 4, false, false, true, true, false, B);  // fence gate EW
-	drawFence(img, getRect(347), tiles, 4, true, true, false, false, false, B);  // fence gate NS
+	drawOffsetPaddedNFace(img, getRect(346), tiles, 4, B, 0.9, CUTOFF_8_16, CUTOFF_4_16, CUTOFF_4_16, 0, 0); // fence gate EW
+	drawOffsetPaddedWFace(img, getRect(347), tiles, 4, B, 0.8, CUTOFF_8_16, CUTOFF_4_16, CUTOFF_4_16, 0, 0); // fence gate NS
 
 	drawSign(img, getRect(70), tiles, 4, B);  // sign facing N/S
 	drawSign(img, getRect(71), tiles, 4, B);  // sign facing NE/SW
@@ -3347,6 +3131,19 @@ bool BlockImages::construct(int B, const string& terrainfile, const string& fire
 	drawStoneWall(img, getRect(588), tiles, 36, true, B); // moss stone wall NS
 	drawStoneWall(img, getRect(589), tiles, 36, false, B); // moss stone wall EW
 	
+	drawFlowerPot(img, getRect(596), tiles, 186, 2, -1, 0, B); // flower pot [empty]
+	drawFlowerPot(img, getRect(597), tiles, 186, 2, 12, 0, B); // flower pot [rose]
+	drawFlowerPot(img, getRect(598), tiles, 186, 2, 13, 0, B); // flower pot [dandelion]
+	drawFlowerPot(img, getRect(599), tiles, 186, 2, 15, 0, B); // flower pot [oak sapling]
+	drawFlowerPot(img, getRect(600), tiles, 186, 2, 63, 0, B); // flower pot [spruce sapling]
+	drawFlowerPot(img, getRect(601), tiles, 186, 2, 79, 0, B); // flower pot [birch sapling]
+	drawFlowerPot(img, getRect(602), tiles, 186, 2, 30, 0, B); // flower pot [jungle tree sapling]
+	drawFlowerPot(img, getRect(603), tiles, 186, 2, 28, 0, B); // flower pot [red mushroom]
+	drawFlowerPot(img, getRect(604), tiles, 186, 2, 29, 0, B); // flower pot [brown mushroom]
+	drawFlowerPot(img, getRect(605), tiles, 186, 2, 70, 1, B); // flower pot [cactus]
+	drawFlowerPot(img, getRect(606), tiles, 186, 2, 55, 0, B); // flower pot [dead bush]
+	drawFlowerPot(img, getRect(607), tiles, 186, 2, 56, 0, B); // flower pot [fern]
+	
 	drawItemBlockImage(img, getRect(104), tiles, 203, B);  // carrot level 7
 	drawItemBlockImage(img, getRect(105), tiles, 204, B);  // potato level 7
 	drawItemBlockImage(img, getRect(106), tiles, 202, B);  // carrot/potato level 6/5/4
@@ -3364,7 +3161,7 @@ bool BlockImages::construct(int B, const string& terrainfile, const string& fire
 	drawAnvil(img, getRect(593), tiles, 215, 231, 1, B); // anvil EW
 	drawAnvil(img, getRect(594), tiles, 215, 216, 1, B); // slightly damaged anvil EW
 	drawAnvil(img, getRect(595), tiles, 215, 232, 1, B); // very damaged anvil EW
-
+	
 	return true;
 }
 

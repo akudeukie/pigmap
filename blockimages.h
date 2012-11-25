@@ -274,20 +274,19 @@ struct BlockImages
 // 529 cocoa level 2 stem E    561 cobblestone wall post NSE     593 anvil EW
 // 530 cocoa level 2 stem W    562 cobblestone wall post W       594 slightly damaged anvil EW
 // 531 log EW                  563 cobblestone wall post NW      595 very damaged anvil EW
-// 532 log NS                  564 cobblestone wall post SW
-// 533 pine log EW             565 cobblestone wall post NSW
-// 534 pine log NS             566 cobblestone wall post EW
-// 535 birch log EW            567 cobblestone wall post NEW
-// 536 birch log NS            568 cobblestone wall post SEW
-// 537 jungle log EW           569 cobblestone wall post NSEW
-// 538 jungle log NS           570 cobblestone wall NS
-// 539 tripwire hook S         571 cobblestone wall EW
-// 540 tripwire hook N         572 moss stone wall post
-// 541 tripwire hook W         573 moss stone wall post N
-// 542 tripwire hook E         574 moss stone wall post S
-// 543 tripwire NSEW           575 moss stone wall post NS
-
-#define NUMBLOCKIMAGES 596
+// 532 log NS                  564 cobblestone wall post SW      596 flower pot
+// 533 pine log EW             565 cobblestone wall post NSW     597 flower pot [rose]
+// 534 pine log NS             566 cobblestone wall post EW      598 flower pot [dandelion]
+// 535 birch log EW            567 cobblestone wall post NEW     599 flower pot [oak sapling]
+// 536 birch log NS            568 cobblestone wall post SEW     600 flower pot [spruce sapling]
+// 537 jungle log EW           569 cobblestone wall post NSEW    601 flower pot [birch sapling]
+// 538 jungle log NS           570 cobblestone wall NS           602 flower pot [jungle tree sapling]
+// 539 tripwire hook S         571 cobblestone wall EW           603 flower pot [red mushroom]
+// 540 tripwire hook N         572 moss stone wall post          604 flower pot [brown mushroom]
+// 541 tripwire hook W         573 moss stone wall post N        605 flower pot [cactus]
+// 542 tripwire hook E         574 moss stone wall post S        606 flower pot [dead bush]
+// 543 tripwire NSEW           575 moss stone wall post NS       607 flower pot [fern]
+#define NUMBLOCKIMAGES 607
 
 
 
