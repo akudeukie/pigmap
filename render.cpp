@@ -265,7 +265,7 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
 		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 		bool iceN = blockN.id == 79;
-		bool iceW = blockN.id == 79;
+		bool iceW = blockW.id == 79;
 		if (iceW && iceN)
 			node.bimgoffset = 180;
 		else if (iceW)
@@ -312,7 +312,8 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 					(connectCobblestoneWall(rj, blockW) ? 0x8 : 0);
 		// Mossy or normal cobblestone wall?
 		//TODO check if blockData needs changing to later bits of blockID
-		int imgoffset = (blockData == 1) ? 18 : 0; // difference in the tiles between cobblestone and mossy walls
+		//Ckecked: I think it shouldn't have to, but only about 95% sure
+        int imgoffset = (blockData == 1) ? 18 : 0; // difference in the tiles between cobblestone and mossy walls
 		if (bits != 0) 
 		{
 			if(connectCobblestoneWallUp(rj, blockU))
