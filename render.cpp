@@ -306,11 +306,6 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	        Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
 	        Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 	        Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
 		int bits = (connectCobblestoneWall(rj, blockN) ? 0x1 : 0) |
 					(connectCobblestoneWall(rj, blockS) ? 0x2 : 0) |
 					(connectCobblestoneWall(rj, blockE) ? 0x4 : 0) |
