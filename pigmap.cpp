@@ -402,7 +402,7 @@ void writeHTML(const RenderJob& rj, const string& htmlpath)
 	    !replace(templateText, "{B}", tostring(rj.mp.B)) ||
 	    !replace(templateText, "{T}", tostring(rj.mp.T)) ||
 	    !replace(templateText, "{baseZoom}", tostring(rj.mp.baseZoom)) ||
-		!replace(templateText, "{format}", ImageSettings::format == ImageSettings::Format_PNG ? "png" : "jpeg"))
+	    !replace(templateText, "{format}", ImageSettings::format == ImageSettings::Format_PNG ? "png" : "jpeg"))
 	{
 		cerr << "template.html is corrupt" << endl;
 		return;

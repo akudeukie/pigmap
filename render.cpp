@@ -215,6 +215,16 @@ inline bool connectNetherFence(RenderJob& rj, const Block& block)
 	return block.id == 113 || block.id == 107 || rj.blockimages.isOpaque(block.id, block.data);
 }
 
+inline bool connectCobblestoneWall(RenderJob& rj, const Block& block)
+{
+    return block.id == 139 || block.id == 107 || block.id == 120 || (rj.blockimages.isOpaque(block.id, block.data) && block.id != 46 && block.id != 89 && block.id != 54 && block.id != 130 && block.id != 29 && block.id != 33);
+}
+
+inline bool connectCobblestoneWallUp(RenderJob& rj, const Block& block)
+{
+    return block.id != 0 || rj.blockimages.isOpaque(block.id, block.data);
+}
+
 inline int getNeighborAirMask(ChunkData* chunkdata, RenderJob& rj, const PosChunkIdx& ci, const BlockIdx& bi)
 {
 	Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
@@ -288,6 +298,38 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		            (connectNetherFence(rj, blockW) ? 0x8 : 0);
 		if (bits != 0)
 			node.bimgoffset = 316 + bits;
+	}
+	else if (blockID == 139) // cobblestone wall
+	{
+	        Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+	        Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+	        Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+	        Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+	        Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
+		int bits = (connectCobblestoneWall(rj, blockN) ? 0x1 : 0) |
+					(connectCobblestoneWall(rj, blockS) ? 0x2 : 0) |
+					(connectCobblestoneWall(rj, blockE) ? 0x4 : 0) |
+					(connectCobblestoneWall(rj, blockW) ? 0x8 : 0);
+		// Mossy or normal cobblestone wall?
+		//TODO check if blockData needs changing to later bits of blockID
+		int imgoffset = (blockData == 1) ? 18 : 0; // difference in the tiles between cobblestone and mossy walls
+		if (bits != 0) 
+		{
+			if(connectCobblestoneWallUp(rj, blockU))
+				node.bimgoffset = 554 + bits;
+			else if (bits == 3)
+				node.bimgoffset = 570;
+			else if(bits == 12)
+				node.bimgoffset = 571;
+			else
+				node.bimgoffset = 554 + bits;
+			node.bimgoffset += imgoffset;
+		}
 	}
 	else if (blockID == 54)  // chest
 	{

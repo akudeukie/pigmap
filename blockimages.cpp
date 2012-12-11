@@ -454,6 +454,17 @@ SourceTile terrainTile(const RGBAImage& tiles, int tile)
 
 
 
+int deinterpolate(int targetj, int srcrange, int destrange)
+{
+	for (int i = 0; i < destrange; i++)
+	{
+		int j = interpolate(i, destrange, srcrange);
+		if (j >= targetj)
+			return i;
+	}
+	return destrange - 1;
+}
+
 // draw a normal block image, using three terrain tiles (which may be flipped/rotated/missing), and adding a bit of shadow
 //  to the N and W faces
 void drawRotatedBlockImage(RGBAImage& dest, const ImageRect& drect, const SourceTile& Nface, const SourceTile& Wface, const SourceTile& Uface, int B)
@@ -1315,6 +1326,261 @@ void drawFence(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, 
 	}
 }
 
+// generic functions for drawing separate faces with offsets and cutoffs
+// - tint: controls how much face is darkened
+// - offset: controls how far face is offset from original cube position inwards
+// - croptop: controls how much of the face is cropped from the top
+// - cropbottom: controls how much of the face is cropped from the bottom
+// - cropleft: controls how much of the face is cropped from the left
+// - cropright: controls how much of the face is cropped from the right
+void drawOffsetPaddedNFace(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B, double tint, int offset, int croptop, int cropbottom, int cropleft, int cropright) 
+{
+	int tilesize = 2 * B;
+	// draw N face
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+		 dstit(drect.x + offset, drect.y + B - deinterpolate(offset, 2*tilesize, tilesize), 1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+	{
+		if (dstit.pos % tilesize >= croptop && dstit.pos % tilesize < tilesize - cropbottom && dstit.pos / tilesize >= cropleft && dstit.pos / tilesize < tilesize - cropright)
+		{
+			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x, dstit.y), tint, tint, tint);
+		}
+	}
+}
+void drawOffsetPaddedWFace(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B, double tint, int offset, int croptop, int cropbottom, int cropleft, int cropright) 
+{
+	int tilesize = 2 * B;
+	// draw W face
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize),
+	     dstit(drect.x + 2*B - offset, drect.y + 2*B - deinterpolate(offset, 2*tilesize, tilesize), -1, tilesize); !srcit.end; srcit.advance(), dstit.advance())
+	{
+		if(dstit.pos % tilesize >= croptop && dstit.pos % tilesize < tilesize - cropbottom && dstit.pos / tilesize >= cropleft && dstit.pos / tilesize < tilesize - cropright) {
+			dest(dstit.x, dstit.y) = tiles(srcit.x, srcit.y);
+			darken(dest(dstit.x, dstit.y), tint, tint, tint);
+		}
+	}
+}
+void drawOffsetPaddedUFace(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B, int offset, int croptop, int cropbottom, int cropleft, int cropright) 
+{
+	int tilesize = 2 * B;
+	// draw U face
+	TopFaceIterator tdstit(drect.x + 2*B-1, drect.y + offset, tilesize);
+	for (FaceIterator srcit((tile%16)*tilesize, (tile/16)*tilesize, 0, tilesize); !srcit.end; srcit.advance(), tdstit.advance())
+	{
+		int adjust = 0;
+		if (croptop % 2 == 0)
+			adjust += ((tdstit.pos / tilesize) % 2 == 0) ? -1 : 1; // adjust for missing pixels
+		if(tdstit.pos % tilesize >= croptop + adjust && tdstit.pos % tilesize < tilesize - cropbottom + adjust && tdstit.pos / tilesize >= cropleft && tdstit.pos / tilesize < tilesize - cropright)
+			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+	}
+}
+
+// draw cobblestone/moss wall post
+void drawStoneWallPost(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B)
+{	
+	int tilesize = 2*B;
+	
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_4_16, 0, 0, CUTOFF_4_16, CUTOFF_4_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_4_16, 0, 0, CUTOFF_4_16, CUTOFF_4_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 0, CUTOFF_4_16, CUTOFF_4_16, CUTOFF_4_16, CUTOFF_4_16); // offset U face
+}
+
+// draw solid moss/cobblestone wall
+void drawStoneWall(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, bool N, int B)
+{
+	int tilesize = 2*B;
+	
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // wall cutoff
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // wall offset
+	
+	if(N) // cobblestone wall going NS
+	{	
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_5_16, CUTOFF_3_16, 0, 0, 0); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, 0, -1, CUTOFF_5_16, CUTOFF_5_16); // offset U face
+	}
+	else // cobblestone wall going EW
+	{
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_3_16, 0, 0, 0); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, CUTOFF_5_16, CUTOFF_5_16, 0, 0); // offset U face
+	}
+}
+// draw cobblestone/moss stone post(optional) and any combination of wall rails (N/S/E/W)
+void drawStoneWallConnected(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, bool N, bool S, bool E, bool W, int B)
+{
+	int tilesize = 2*B;
+	
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // wall cutoff
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // wall offset
+	
+	// first, E and S rails, since the post should be in front of them
+	if (E) // draw E rail of the wall
+	{
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_3_16, 0, 0, tilesize - CUTOFF_4_16); // offset N face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, CUTOFF_5_16, CUTOFF_5_16, 0, tilesize - CUTOFF_4_16); // offset U face
+	}
+	if (S) // draw S rail of the wall
+	{
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_5_16, CUTOFF_3_16, 0, tilesize - CUTOFF_4_16, 0); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, 0, tilesize - CUTOFF_4_16, CUTOFF_5_16, CUTOFF_5_16); // offset U face
+	}
+
+	// now the post
+	drawStoneWallPost(dest, drect, tiles, tile, B);
+
+	// now the N and W rails
+	if (W) // draw W rail of the wall
+	{
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_3_16, 0, tilesize - CUTOFF_4_16, 0); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, CUTOFF_5_16, CUTOFF_5_16, tilesize - CUTOFF_4_16, 0); // offset U face
+	}
+	if (N) // draw N rail of the wall
+	{		
+		drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.8, 0, CUTOFF_3_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.6, CUTOFF_5_16, CUTOFF_3_16, 0, 0, tilesize - CUTOFF_4_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, tile, B, CUTOFF_3_16, tilesize - CUTOFF_4_16, -1, CUTOFF_5_16, CUTOFF_5_16); // offset U face
+	}
+}
+
+// draw heart of the beacon
+void drawBeacon(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int pedestalTile, int heartTile,  const ImageRect& glassrect, int B)
+{
+	int tilesize = 2*B;
+	
+	int CUTOFF_2_16 = deinterpolate(2, 16, tilesize); // eighth
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // pedestal height, heart offset
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // heart width
+	
+	// draw obsidion pedestal
+	drawOffsetPaddedNFace(dest, drect, tiles, pedestalTile, B, 0.9, CUTOFF_2_16, tilesize - CUTOFF_3_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, pedestalTile, B, 0.8, CUTOFF_2_16, tilesize - CUTOFF_3_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, pedestalTile, B, 2*B - CUTOFF_3_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16); // offset U face
+	
+	// draw nether star heart
+	drawOffsetPaddedNFace(dest, drect, tiles, heartTile, B, 0.9, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, heartTile, B, 0.8, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, heartTile, B, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16, CUTOFF_3_16); // offset U face
+	
+	// blit glass over the drawn beacon heart
+	alphablit(dest, glassrect, dest, drect.x, drect.y);
+}
+
+// draw oriented anvil; orientation = 0 for NS, 1 - EW orientation
+// function does ignore the fact, that anvil facing N is different from one facing S; though difference is so insignificant, that it is deliberately omitted
+void drawAnvil(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int faceTile, int orientation, int B)
+{
+	int tilesize = 2*B;
+	
+	int CUTOFF_2_16 = deinterpolate(2, 16, tilesize); // base crop
+	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // second base crop, face crop
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // second base crop on another side, pillar crop
+	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // pillar height crops
+	int CUTOFF_10_16 = deinterpolate(10, 16, tilesize); // face crop (from bottom)
+	
+	// draw anvil base (orientation independent)
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 2*B - CUTOFF_4_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16, CUTOFF_2_16); // offset U face
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, CUTOFF_2_16, tilesize - CUTOFF_4_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, CUTOFF_2_16, tilesize - CUTOFF_4_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset W face
+	
+	// draw anvil second base (oriented)
+	int noffset = 0;
+	int woffset = 0;
+	if(orientation == 0)
+	{
+		noffset = CUTOFF_3_16;
+		woffset = CUTOFF_5_16;
+	}
+	else
+	{
+		noffset = CUTOFF_5_16;
+		woffset = CUTOFF_3_16;
+	}
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 2*B - CUTOFF_5_16, woffset, woffset, noffset, noffset); // offset U face
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, woffset, tilesize - CUTOFF_5_16, CUTOFF_4_16, noffset, noffset); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, noffset, tilesize - CUTOFF_5_16, CUTOFF_4_16, woffset, woffset); // offset W face
+	
+	// draw anvil pillar (oriented)
+	if(orientation == 0)
+	{
+		noffset = 0;
+		woffset = CUTOFF_2_16;
+	}
+	else
+	{
+		noffset = CUTOFF_2_16;
+		woffset = 0;
+	}
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, CUTOFF_4_16 + woffset, CUTOFF_6_16, CUTOFF_5_16, CUTOFF_4_16 + noffset, CUTOFF_4_16 + noffset); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, CUTOFF_4_16 + noffset, CUTOFF_6_16, CUTOFF_5_16, CUTOFF_4_16 + woffset, CUTOFF_4_16 + woffset); // offset W face
+	
+	// draw anvil face (oriented)
+	if(orientation == 0)
+	{
+		noffset = 0;
+		woffset = CUTOFF_3_16;
+	}
+	else
+	{
+		noffset = CUTOFF_3_16;
+		woffset = 0;
+	}
+	int rot = 0;
+	if(orientation == 0)
+		rot = 1;
+	else
+		rot = 0;
+	// draw U bottom layer (cropped-texture-fix)
+	drawOffsetPaddedUFace(dest, drect, tiles, tile, B, 0, woffset, woffset, noffset, noffset); // cropped U face
+	
+	// draw U face
+	TopFaceIterator tdstit = TopFaceIterator(drect.x + 2*B-1, drect.y, tilesize);
+	for (RotatedFaceIterator srcit((faceTile%16)*tilesize, (faceTile/16)*tilesize, rot, tilesize, 0); !srcit.end; srcit.advance(), tdstit.advance())
+	{	
+		if(ALPHA(tiles(srcit.x, srcit.y)) != 0)
+			dest(tdstit.x, tdstit.y) = tiles(srcit.x, srcit.y);
+	}
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.85, woffset, 0, CUTOFF_10_16, noffset, noffset); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.7, noffset, 0, CUTOFF_10_16, woffset, woffset); // offset W face
+}
+
+// draw empty flower pot
+void drawFlowerPot(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int dirtTile, int contentTile, int contentType, int B)
+{
+	int tilesize = 2*B;
+	
+	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // offset, side crop
+	int CUTOFF_5_16 = deinterpolate(5, 16, tilesize); // offset, side crop
+	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // dirt crop
+	int CUTOFF_10_16 = deinterpolate(10, 16, tilesize); // top crop
+	int CUTOFF_11_16 = deinterpolate(11, 16, tilesize); // inner side offset
+	int CUTOFF_12_16 = deinterpolate(12, 16, tilesize); // dirt offset
+	
+	// draw background pot faces
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.9, CUTOFF_11_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_11_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+	drawOffsetPaddedUFace(dest, drect, tiles, dirtTile, B, CUTOFF_12_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // cropped U face
+	// draw cactus, if possible
+	if(contentTile != -1 && contentType == 1) {
+		drawOffsetPaddedNFace(dest, drect, tiles, contentTile, B, 0.9, CUTOFF_6_16, 0, CUTOFF_4_16, CUTOFF_6_16, CUTOFF_6_16); // offset N face
+		drawOffsetPaddedWFace(dest, drect, tiles, contentTile, B, 0.8, CUTOFF_6_16, 0, CUTOFF_4_16, CUTOFF_6_16, CUTOFF_6_16); // offset W face
+		drawOffsetPaddedUFace(dest, drect, tiles, contentTile, B, 0, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // cropped U face
+	}
+	// draw front pot faces
+	drawOffsetPaddedNFace(dest, drect, tiles, tile, B, 0.9, CUTOFF_5_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset N face
+	drawOffsetPaddedWFace(dest, drect, tiles, tile, B, 0.8, CUTOFF_5_16, CUTOFF_10_16, 0, CUTOFF_5_16, CUTOFF_5_16); // offset W face
+	
+	// draw multipart/sprite contents of the pot
+	if(contentTile != -1 && contentType == 0)
+		drawItemBlockImage(dest, ImageRect(drect.x, drect.y - CUTOFF_4_16, drect.w, drect.h), tiles, contentTile, B);
+}
+
 // draw crappy sign facing out towards the viewer
 void drawSign(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles, int tile, int B)
 {
@@ -2014,7 +2280,22 @@ void BlockImages::setOffsets()
 	blockOffsets[offsetIdx(136, 7)] = 518;
 	
 	// 1.4
+	setOffsetsForID(137, 228, *this); // command block
+	setOffsetsForID(138, 54, *this); // beacon
 	setOffsetsForID(139, 554, *this); // cobblestone wall post
+	blockOffsets[offsetIdx(139, 1)] = 572; // moss stone wall post
+	setOffsetsForID(140, 596, *this); // flower pot
+	blockOffsets[offsetIdx(140, 1)] = 597; // flower pot [rose]
+	blockOffsets[offsetIdx(140, 2)] = 598; // flower pot [dandelion]
+	blockOffsets[offsetIdx(140, 3)] = 599; // flower pot [oak sapling]
+	blockOffsets[offsetIdx(140, 4)] = 600; // flower pot [spruce sapling]
+	blockOffsets[offsetIdx(140, 5)] = 601; // flower pot [birch sapling]
+	blockOffsets[offsetIdx(140, 6)] = 602; // flower pot [jungle tree sapling]
+	blockOffsets[offsetIdx(140, 7)] = 603; // flower pot [red mushroom]
+	blockOffsets[offsetIdx(140, 8)] = 604; // flower pot [brown mushroom]
+	blockOffsets[offsetIdx(140, 9)] = 605; // flower pot [cactus]
+	blockOffsets[offsetIdx(140, 10)] = 606; // flower pot [dead bush]
+	blockOffsets[offsetIdx(140, 11)] = 607; // flower pot [rose]
 	setOffsetsForID(141, 104, *this); // carrot
 	blockOffsets[offsetIdx(141, 6)] = 106;
 	blockOffsets[offsetIdx(141, 5)] = 106;
@@ -2031,6 +2312,25 @@ void BlockImages::setOffsets()
 	blockOffsets[offsetIdx(142, 2)] = 107;
 	blockOffsets[offsetIdx(142, 1)] = 108;
 	blockOffsets[offsetIdx(142, 0)] = 108;
+	setOffsetsForID(143, 149, *this);  // wooden button
+	blockOffsets[offsetIdx(143, 2)] = 150;
+	blockOffsets[offsetIdx(143, 3)] = 151;
+	blockOffsets[offsetIdx(143, 4)] = 152;
+	blockOffsets[offsetIdx(143, 10)] = 150;
+	blockOffsets[offsetIdx(143, 11)] = 151;
+	blockOffsets[offsetIdx(143, 12)] = 152;
+	setOffsetsForID(145, 590, *this);  // anvil NS
+	blockOffsets[offsetIdx(145, 1)] = 593; // anvil EW
+	blockOffsets[offsetIdx(145, 2)] = 590; // anvil NS
+	blockOffsets[offsetIdx(145, 3)] = 593; // anvil EW
+	blockOffsets[offsetIdx(145, 4)] = 591; // slightly damaged anvil NS
+	blockOffsets[offsetIdx(145, 5)] = 594; // slightly damaged anvil EW
+	blockOffsets[offsetIdx(145, 6)] = 591; // slightly damaged anvil NS
+	blockOffsets[offsetIdx(145, 7)] = 594; // slightly damaged anvil EW
+	blockOffsets[offsetIdx(145, 8)] = 592; // very damaged anvil NS
+	blockOffsets[offsetIdx(145, 9)] = 595; // very damaged anvil EW
+	blockOffsets[offsetIdx(145, 10)] = 592; // very damaged anvil NS
+	blockOffsets[offsetIdx(145, 11)] = 595; // very damaged anvil EW
 }
 
 void BlockImages::checkOpacityAndTransparency(int B)
@@ -2122,17 +2422,6 @@ void BlockImages::retouchAlphas(int B)
 				setAlpha(img(it.x, it.y), 255);
 		}
 	}
-}
-
-int deinterpolate(int targetj, int srcrange, int destrange)
-{
-	for (int i = 0; i < destrange; i++)
-	{
-		int j = interpolate(i, destrange, srcrange);
-		if (j >= targetj)
-			return i;
-	}
-	return destrange - 1;
 }
 
 bool BlockImages::construct(int B, const string& terrainfile, const string& firefile, const string& endportalfile, const string& chestfile, const string& largechestfile, const string& enderchestfile)
@@ -2747,8 +3036,8 @@ bool BlockImages::construct(int B, const string& terrainfile, const string& fire
 	drawFence(img, getRect(329), tiles, 224, true, false, true, true, true, B);  // nether fence NEW
 	drawFence(img, getRect(330), tiles, 224, false, true, true, true, true, B);  // nether fence SEW
 	drawFence(img, getRect(331), tiles, 224, true, true, true, true, true, B);  // nether fence NSEW
-	drawFence(img, getRect(346), tiles, 4, false, false, true, true, false, B);  // fence gate EW
-	drawFence(img, getRect(347), tiles, 4, true, true, false, false, false, B);  // fence gate NS
+	drawOffsetPaddedNFace(img, getRect(346), tiles, 4, B, 0.9, CUTOFF_8_16, CUTOFF_4_16, CUTOFF_4_16, 0, 0); // fence gate EW
+	drawOffsetPaddedWFace(img, getRect(347), tiles, 4, B, 0.8, CUTOFF_8_16, CUTOFF_4_16, CUTOFF_4_16, 0, 0); // fence gate NS
 
 	drawSign(img, getRect(70), tiles, 4, B);  // sign facing N/S
 	drawSign(img, getRect(71), tiles, 4, B);  // sign facing NE/SW
@@ -2800,12 +3089,79 @@ bool BlockImages::construct(int B, const string& terrainfile, const string& fire
 	drawVines(img, getRect(394), tiles, 143, B, true, true, true, true, false);  // vines NSEW
 	
 	// 1.4
+	drawBlockImage(img, getRect(228), tiles, 184, 184, 184, B); // command block
+	
+	drawBeacon(img, getRect(54), tiles, 37, 41, getRect(28), B); // beacon
+	
+	drawStoneWallPost(img, getRect(554), tiles, 16, B); // cobblestone wall post
+	drawStoneWallConnected(img, getRect(555), tiles, 16, true, false, false, false, B);  // cobblestone wall post N
+	drawStoneWallConnected(img, getRect(556), tiles, 16, false, true, false, false, B);  // cobblestone wall post S
+	drawStoneWallConnected(img, getRect(557), tiles, 16, true, true, false, false, B);  // cobblestone wall post NS
+	drawStoneWallConnected(img, getRect(558), tiles, 16, false, false, true, false, B);  // cobblestone wall post E
+	drawStoneWallConnected(img, getRect(559), tiles, 16, true, false, true, false, B);  // cobblestone wall post NE
+	drawStoneWallConnected(img, getRect(560), tiles, 16, false, true, true, false, B);  // cobblestone wall post SE
+	drawStoneWallConnected(img, getRect(561), tiles, 16, true, true, true, false, B);  // cobblestone wall post NSE
+	drawStoneWallConnected(img, getRect(562), tiles, 16, false, false, false, true, B);  // cobblestone wall post W
+	drawStoneWallConnected(img, getRect(563), tiles, 16, true, false, false, true, B);  // cobblestone wall post NW
+	drawStoneWallConnected(img, getRect(564), tiles, 16, false, true, false, true, B);  // cobblestone wall post SW
+	drawStoneWallConnected(img, getRect(565), tiles, 16, true, true, false, true, B);  // cobblestone wall post NSW
+	drawStoneWallConnected(img, getRect(566), tiles, 16, false, false, true, true, B);  // cobblestone wall post EW
+	drawStoneWallConnected(img, getRect(567), tiles, 16, true, false, true, true, B);  // cobblestone wall post NEW
+	drawStoneWallConnected(img, getRect(568), tiles, 16, false, true, true, true, B);  // cobblestone wall post SEW
+	drawStoneWallConnected(img, getRect(569), tiles, 16, true, true, true, true, B);  // cobblestone wall post NSEW
+	drawStoneWall(img, getRect(570), tiles, 16, true, B); // cobblestone wall NS
+	drawStoneWall(img, getRect(571), tiles, 16, false, B); // cobblestone wall EW
+	
+	drawStoneWallPost(img, getRect(572), tiles, 36, B); // moss stone wall post
+	drawStoneWallConnected(img, getRect(573), tiles, 36, true, false, false, false, B);  // moss stone wall post N
+	drawStoneWallConnected(img, getRect(574), tiles, 36, false, true, false, false, B);  // moss stone wall post S
+	drawStoneWallConnected(img, getRect(575), tiles, 36, true, true, false, false, B);  // moss stone wall post NS
+	drawStoneWallConnected(img, getRect(576), tiles, 36, false, false, true, false, B);  // moss stone wall post E
+	drawStoneWallConnected(img, getRect(577), tiles, 36, true, false, true, false, B);  // moss stone wall post NE
+	drawStoneWallConnected(img, getRect(578), tiles, 36, false, true, true, false, B);  // moss stone wall post SE
+	drawStoneWallConnected(img, getRect(579), tiles, 36, true, true, true, false, B);  // moss stone wall post NSE
+	drawStoneWallConnected(img, getRect(580), tiles, 36, false, false, false, true, B);  // moss stone wall post W
+	drawStoneWallConnected(img, getRect(581), tiles, 36, true, false, false, true, B);  // moss stone wall post NW
+	drawStoneWallConnected(img, getRect(582), tiles, 36, false, true, false, true, B);  // moss stone wall post SW
+	drawStoneWallConnected(img, getRect(583), tiles, 36, true, true, false, true, B);  // moss stone wall post NSW
+	drawStoneWallConnected(img, getRect(584), tiles, 36, false, false, true, true, B);  // moss stone wall post EW
+	drawStoneWallConnected(img, getRect(585), tiles, 36, true, false, true, true, B);  // moss stone wall post NEW
+	drawStoneWallConnected(img, getRect(586), tiles, 36, false, true, true, true, B);  // moss stone wall post SEW
+	drawStoneWallConnected(img, getRect(587), tiles, 36, true, true, true, true, B);  // moss stone wall post NSEW
+	drawStoneWall(img, getRect(588), tiles, 36, true, B); // moss stone wall NS
+	drawStoneWall(img, getRect(589), tiles, 36, false, B); // moss stone wall EW
+	
+	drawFlowerPot(img, getRect(596), tiles, 186, 2, -1, 0, B); // flower pot [empty]
+	drawFlowerPot(img, getRect(597), tiles, 186, 2, 12, 0, B); // flower pot [rose]
+	drawFlowerPot(img, getRect(598), tiles, 186, 2, 13, 0, B); // flower pot [dandelion]
+	drawFlowerPot(img, getRect(599), tiles, 186, 2, 15, 0, B); // flower pot [oak sapling]
+	drawFlowerPot(img, getRect(600), tiles, 186, 2, 63, 0, B); // flower pot [spruce sapling]
+	drawFlowerPot(img, getRect(601), tiles, 186, 2, 79, 0, B); // flower pot [birch sapling]
+	drawFlowerPot(img, getRect(602), tiles, 186, 2, 30, 0, B); // flower pot [jungle tree sapling]
+	drawFlowerPot(img, getRect(603), tiles, 186, 2, 28, 0, B); // flower pot [red mushroom]
+	drawFlowerPot(img, getRect(604), tiles, 186, 2, 29, 0, B); // flower pot [brown mushroom]
+	drawFlowerPot(img, getRect(605), tiles, 186, 2, 70, 1, B); // flower pot [cactus]
+	drawFlowerPot(img, getRect(606), tiles, 186, 2, 55, 0, B); // flower pot [dead bush]
+	drawFlowerPot(img, getRect(607), tiles, 186, 2, 56, 0, B); // flower pot [fern]
+	
 	drawItemBlockImage(img, getRect(104), tiles, 203, B);  // carrot level 7
 	drawItemBlockImage(img, getRect(105), tiles, 204, B);  // potato level 7
 	drawItemBlockImage(img, getRect(106), tiles, 202, B);  // carrot/potato level 6/5/4
 	drawItemBlockImage(img, getRect(107), tiles, 201, B);  // carrot/potato level 3/2
 	drawItemBlockImage(img, getRect(108), tiles, 200, B);  // carrot/potato level 1/0
-
+	
+	drawPartialSingleFaceBlockImage(img, getRect(149), tiles, 4, 1, B, 0.35, 0.65, 0.35, 0.65);  // wooden button facing S
+	drawPartialSingleFaceBlockImage(img, getRect(150), tiles, 4, 0, B, 0.35, 0.65, 0.35, 0.65);  // wooden button facing N
+	drawPartialSingleFaceBlockImage(img, getRect(151), tiles, 4, 3, B, 0.35, 0.65, 0.35, 0.65);  // wooden button facing W
+	drawPartialSingleFaceBlockImage(img, getRect(152), tiles, 4, 2, B, 0.35, 0.65, 0.35, 0.65);  // wooden button facing E
+	
+	drawAnvil(img, getRect(590), tiles, 215, 231, 0, B); // anvil NS
+	drawAnvil(img, getRect(591), tiles, 215, 216, 0, B); // slightly damaged anvil NS
+	drawAnvil(img, getRect(592), tiles, 215, 232, 0, B); // very damaged anvil NS
+	drawAnvil(img, getRect(593), tiles, 215, 231, 1, B); // anvil EW
+	drawAnvil(img, getRect(594), tiles, 215, 216, 1, B); // slightly damaged anvil EW
+	drawAnvil(img, getRect(595), tiles, 215, 232, 1, B); // very damaged anvil EW
+	
 	return true;
 }
 

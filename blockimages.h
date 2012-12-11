@@ -144,7 +144,7 @@ struct BlockImages
 // 19 lava level 1             51 wood stairs asc N        83 ladder W side            115 iron door top S
 // 20 sand                     52 wood stairs asc W        84 ladder N side            116 iron door top N
 // 21 UNUSED                   53 wood stairs asc E        85 ladder S side            117 iron door top W
-// 22 gold ore                 54 UNUSED                   86 track EW                 118 iron door top E
+// 22 gold ore                 54 beacon                   86 track EW                 118 iron door top E
 // 23 iron ore                 55 redstone wire NSEW       87 track NS                 119 wood pressure plate
 // 24 coal ore                 56 diamond ore              88 UNUSED                   120 redstone ore
 // 25 log                      57 diamond block            89 UNUSED                   121 red torch floor off
@@ -159,7 +159,7 @@ struct BlockImages
 // 129 snow block              161 fence E                 193 stone button facing E   225 dispenser E/S
 // 130 cactus                  162 fence NE                194 wall lever facing S     226 sandstone
 // 131 clay                    163 fence SE                195 wall lever facing N     227 note block
-// 132 reeds                   164 fence NSE               196 wall lever facing W     228 UNUSED
+// 132 reeds                   164 fence NSE               196 wall lever facing W     228 command block
 // 133 jukebox                 165 fence W                 197 wall lever facing E     229 sandstone slab
 // 134 fence post              166 fence NW                198 ground lever EW         230 wooden slab
 // 135 pumpkin facing W        167 fence SW                199 ground lever NS         231 cobble slab
@@ -176,10 +176,10 @@ struct BlockImages
 // 146 red torch N off         178 water missing W         210 gray wool               242 repeater on E
 // 147 red torch E off         179 water missing N         211 light gray wool         243 repeater on W
 // 148 red torch W off         180 ice surface             212 cyan wool               244 repeater off N
-// 149 UNUSED                  181 ice missing W           213 purple wool             245 repeater off S
-// 150 UNUSED                  182 ice missing N           214 blue wool               246 repeater off E
-// 151 UNUSED                  183 furnace W               215 brown wool              247 repeater off W
-// 152 UNUSED                  184 furnace N               216 green wool              248 pine leaves
+// 149 wooden button facing S  181 ice missing W           213 purple wool             245 repeater off S
+// 150 wooden button facing N  182 ice missing N           214 blue wool               246 repeater off E
+// 151 wooden button facing W  183 furnace W               215 brown wool              247 repeater off W
+// 152 wooden button facing E  184 furnace N               216 green wool              248 pine leaves
 // 153 pumpkin facing E/S      185 furnace E/S             217 red wool                249 birch leaves
 // 154 pumpkin facing N        186 lit furnace W           218 black wool              250 pine sapling
 // 155 jack-o-lantern E/S      187 lit furnace N           219 pine log                251 birch sapling
@@ -254,40 +254,39 @@ struct BlockImages
 // 414 closed sticky piston U  446 brick stairs inv S      478 emerald ore              510 birch stairs inv E
 // 415 closed sticky piston N  447 brick stairs inv N      479 ender chest facing W     511 jungle stairs asc S
 //
-// 512 jungle stairs asc N     544 tripwire NS
-// 513 jungle stairs asc W     545 tripwire NE
-// 514 jungle stairs asc E     546 tripwire NW
-// 515 jungle stairs inv S     547 tripwire SE
-// 516 jungle stairs inv N     548 tripwire SW
-// 517 jungle stairs inv W     549 tripwire EW
-// 518 jungle stairs inv E     550 tripwire SEW
-// 519 cocoa level 0 stem N    551 tripwire NEW
-// 520 cocoa level 0 stem S    552 tripwire NSW
-// 521 cocoa level 0 stem E    553 tripwire NSE
-// 522 cocoa level 0 stem W
-// 523 cocoa level 1 stem N
-// 524 cocoa level 1 stem S
-// 525 cocoa level 1 stem E
-// 526 cocoa level 1 stem W
-// 527 cocoa level 2 stem N
-// 528 cocoa level 2 stem S
-// 529 cocoa level 2 stem E
-// 530 cocoa level 2 stem W
-// 531 log EW
-// 532 log NS
-// 533 pine log EW
-// 534 pine log NS
-// 535 birch log EW
-// 536 birch log NS
-// 537 jungle log EW
-// 538 jungle log NS
-// 539 tripwire hook S
-// 540 tripwire hook N
-// 541 tripwire hook W
-// 542 tripwire hook E
-// 543 tripwire NSEW
-
-#define NUMBLOCKIMAGES 554
+// 512 jungle stairs asc N     544 tripwire NS                   576 moss stone wall post E
+// 513 jungle stairs asc W     545 tripwire NE                   577 moss stone wall post NE
+// 514 jungle stairs asc E     546 tripwire NW                   578 moss stone wall post SE
+// 515 jungle stairs inv S     547 tripwire SE                   579 moss stone wall post NSE
+// 516 jungle stairs inv N     548 tripwire SW                   580 moss stone wall post W
+// 517 jungle stairs inv W     549 tripwire EW                   581 moss stone wall post NW
+// 518 jungle stairs inv E     550 tripwire SEW                  582 moss stone wall post SW
+// 519 cocoa level 0 stem N    551 tripwire NEW                  583 moss stone wall post NSW
+// 520 cocoa level 0 stem S    552 tripwire NSW                  584 moss stone wall post EW
+// 521 cocoa level 0 stem E    553 tripwire NSE                  585 moss stone wall post NEW
+// 522 cocoa level 0 stem W    554 cobblestone wall post         586 moss stone wall post SEW
+// 523 cocoa level 1 stem N    555 cobblestone wall post N       587 moss stone wall post NSEW
+// 524 cocoa level 1 stem S    556 cobblestone wall post S       588 moss stone wall NS
+// 525 cocoa level 1 stem E    557 cobblestone wall post NS      589 moss stone wall EW
+// 526 cocoa level 1 stem W    558 cobblestone wall post E       590 anvil NS
+// 527 cocoa level 2 stem N    559 cobblestone wall post NE      591 slightly damaged anvil NS
+// 528 cocoa level 2 stem S    560 cobblestone wall post SE      592 very damaged anvil NS
+// 529 cocoa level 2 stem E    561 cobblestone wall post NSE     593 anvil EW
+// 530 cocoa level 2 stem W    562 cobblestone wall post W       594 slightly damaged anvil EW
+// 531 log EW                  563 cobblestone wall post NW      595 very damaged anvil EW
+// 532 log NS                  564 cobblestone wall post SW      596 flower pot
+// 533 pine log EW             565 cobblestone wall post NSW     597 flower pot [rose]
+// 534 pine log NS             566 cobblestone wall post EW      598 flower pot [dandelion]
+// 535 birch log EW            567 cobblestone wall post NEW     599 flower pot [oak sapling]
+// 536 birch log NS            568 cobblestone wall post SEW     600 flower pot [spruce sapling]
+// 537 jungle log EW           569 cobblestone wall post NSEW    601 flower pot [birch sapling]
+// 538 jungle log NS           570 cobblestone wall NS           602 flower pot [jungle tree sapling]
+// 539 tripwire hook S         571 cobblestone wall EW           603 flower pot [red mushroom]
+// 540 tripwire hook N         572 moss stone wall post          604 flower pot [brown mushroom]
+// 541 tripwire hook W         573 moss stone wall post N        605 flower pot [cactus]
+// 542 tripwire hook E         574 moss stone wall post S        606 flower pot [dead bush]
+// 543 tripwire NSEW           575 moss stone wall post NS       607 flower pot [fern]
+#define NUMBLOCKIMAGES 607
 
 
 
