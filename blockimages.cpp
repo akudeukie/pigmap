@@ -1454,8 +1454,8 @@ void drawBeacon(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tiles,
 	
 	int CUTOFF_2_16 = deinterpolate(2, 16, tilesize); // eighth
 	int CUTOFF_3_16 = deinterpolate(3, 16, tilesize); // pedestal height, heart offset
-	int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
-	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // heart width
+	//int CUTOFF_4_16 = deinterpolate(4, 16, tilesize); // quarter
+	//int CUTOFF_6_16 = deinterpolate(6, 16, tilesize); // heart width
 	
 	// draw obsidion pedestal
 	drawOffsetPaddedNFace(dest, drect, tiles, pedestalTile, B, 0.9, CUTOFF_2_16, tilesize - CUTOFF_3_16, 0, CUTOFF_2_16, CUTOFF_2_16); // offset N face

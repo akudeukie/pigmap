@@ -381,7 +381,8 @@ bool expandMap(const string& outputpath)
 
 	// touch all tiles, to prevent browser cache mishaps (since many new tiles will have the same
 	//  filename as some old tile, but possibly with an earlier timestamp)
-	system((string("find ") + outputpath + " -exec touch {} +").c_str());
+	if (system((string("find ") + outputpath + " -exec touch {} +").c_str()) < 0)
+        cerr << "Error changing mtimes. Ignoring..." << endl;
 
 	return true;
 }

@@ -107,7 +107,8 @@ bool RGBAImage::readPNG(const string& filename)
 	fcloser fc(f);
 
 	uint8_t header[8];
-	fread(header, 1, 8, f);
+	if (fread(header, 1, 8, f) < 8)
+        return false;
 	if (0 != png_sig_cmp(header, 0, 8))
 		return false;
 
