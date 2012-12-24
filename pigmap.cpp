@@ -44,6 +44,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#include "version.h"
 #include "blockimages.h"
 #include "rgba.h"
 #include "map.h"
@@ -1010,7 +1011,7 @@ int main(int argc, char **argv)
 	bool expand = false;
 
 	int c;
-	while ((c = getopt(argc, argv, "i:o:g:c:B:T:Z:h:w:xm:r:y:Y:j:f:")) != -1)
+	while ((c = getopt(argc, argv, "i:o:g:c:B:T:Z:t:w:xm:r:y:Y:j:f:h")) != -1)
 	{
 		switch (c)
 		{
@@ -1067,7 +1068,7 @@ int main(int argc, char **argv)
 				mp.maxY = atoi(optarg);
 				mp.userMaxY = true;
 				break;
-			case 'h':
+			case 't':
 				threads = atoi(optarg);
 				break;
 			case 'x':
@@ -1079,8 +1080,31 @@ int main(int argc, char **argv)
 			case 'w':
 				testworldsize = atoi(optarg);
 				break;
+			case 'h':
+				cerr << "PigMap " << PIGMAP_VERSION << endl
+                                     << "-i <path> minecraft world input path. This should be the base of the world" << endl
+                                     << "-o <path> output path. This is the diretory to put the html file in" << endl
+                                     << "-g <path> image path. This is where to find the minecraft terrain.png and also to output the cached blocks." << endl
+                                     << "-c [filename] file containing chunks to render" << endl
+                                     << "-r [filename] file containing regions to render" << endl
+                                     << "-f [format] rendering output format - png,jpg or both" << endl
+                                     << "-j <int> jpeg quality (1-100)" << endl
+                                     << "-Y <int> maximum Y value" << endl
+                                     << "-y <int> minimum Y value" << endl
+                                     << "-Z <int> (base zoom)?" << endl
+                                     << "-h <int> threads to use for rendering" << endl
+                                     << "-B <int> Block size - size in pixels of each minecraft block (2-16)!" << endl
+                                     << "-T <int> Tile Size Division. (2-16)" << endl
+                                     << "-Z <int> Map zoom levels (0-30)" << endl
+                                     << "-m <path> location of html input files" << endl
+                                     << "-x turn on expanding of map, for when base zoom is too small for the tiling" << endl
+                                     << "-w <int> turn on test mode, and create test world of size <int>" << endl
+                                     << endl
+                                     << " Tile Size Determines how large the tiles on the map are." << endl 
+                                     << " A larger size saves disk space, but makes tiles load slower." << endl;
+                               return 0;
 			case '?':
-				cerr << "-" << (char)optopt << ": unrecognized option or missing argument" << endl;
+				cerr << "-" << (char)optopt << ": unrecognized option or missing argument, -h displays help." << endl;
 				return 1;
 			default:  // should never happen (?)
 				cerr << "getopt not working?" << endl;
