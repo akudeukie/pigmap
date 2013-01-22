@@ -1,0 +1,206 @@
+# blockdescriptor.list
+# 
+# block types:
+# 0 SOLID (specify texture for all faces, all textures for west face, south face, top face; like any solid block)
+# 1 SOLIDORIENTED (solid blocks, that can be oriented N,S,W,E but not U or D; specify list of bits for N,S,W,E, then textures for face, side, top; like dispensers, furnaces, pumpkins, jack 'o' lanterns)
+# 2 SOLIDROTATED (solid blocks, that can be oriented in any direction; specify top(face), side, bottom(opposite to face) textures ;like pistons)
+# 3 SOLIDDATA (list all textures in order of data bits; like wooden planks, wool, wooden double slabs)
+# 4 SOLIDDATAFILL (like SOLIDDATA, but "tiles" existing data over remaining bits(if any); like leaves)
+# 5 SOLIDDATATRUNK (specify pairs of textures for top and sides for each data bit; like sandstone, double slabs)
+# 6 SOLIDDATATRUNKROTATED (specify bit spacing method (S - each orientation spaced based on group name, O - each orientation is stored in order of group appearance), then list of groups with flag (if this data group should be oriented), top texture, side texture; like wood logs)
+# 7 SOLIDOBSTRUCTED (solid block with missing faces due to obstruction; like ice blocks)
+# 8 SOLIDPARTIAL (list top cutoff, bottom cutoff, then Wface, Sface, Uface; cutoff is specified by number 0 - 16(which is ridiculous; like cake, enchanting table(getto version))
+# 9 SOLIDDATAPARTIALFILL (list Wface, Sface, Uface, then specify cutoffs for data bits in a sequence; like snow)
+# 10 SOLIDTRANSPARENT (draws all faces, in combination with empty tile, interesting results can be achieved; specify texture for each block face - D, N, E, W, S, U; like fire) 
+# 11 SLABDATA (specify texture for all faces of slab for each data bit; like wooden slabs)
+# 12 SLABDATATRUNK (specify pairs of textures for top and sides for each data bit; like slabs)
+# 13 ITEMDATA (list textures for each data bit; like saplings, wheat, carrots, potatoes, tall grass, dead brush, reeds)
+# 14 ITEMDATAORIENTED (list N,S,W,E orientation bit indexes, then list of textures per data orientation group; like cocoa pods)
+# 15 ITEMDATAFILL (used for such items as sapling; behaves like ITEMDATA, but if list of textures is not full (up to 16), it will "tile" existing data over remaining bits)
+# 16 MULTIITEMDATA (list textures for each data bit; like nether wart)
+# 17 STAIR (list textures for: side, top OR side (if all faces has the same texture); stairs in all it's glory)
+# 18 FENCE (specify base texture; like fence, nether brick fence)
+# 19 WALLDATA (specify base texture for each data bit; like cobblestone wall, mossy cobblestone wall)
+# 20 FENCEGATE (specify base texture for fence gate; like fence gate)
+# 21 MUSHROOM (specify pore, stem, cap textures; like huge brown / red mushrooms)
+# 22 CHEST (specify chest texture, large chest texture(don't specify it, if chest is not double chest); like chest, ender chest, trapped chest)
+# 23 RAIL (specify rail texture, corner texture(for cornered tracks); like rails, detector rails)
+# 24 RAILPOWERED (specify rail texture(off), rail texture(on); like powered rails, activator rails)
+# 25 PANEDATA (specify base texture for each data bit; like iron bars, glass pane)
+# 26 DOOR (specify textures for lower and bottom part of the classic 2x1 door; like wooden door, iron door)
+# 27 TRAPDOOR (specify texture for trap door
+# 28 TORCH (specify base texture of the torch; like torches, redstone torches)
+# 29 ONWALLPARTIAL (specify list of bits indexes for N,S,W,E attachments, base texture, cuttoffs for N,S,W,E (tile orientation, not world orientation!); like ladders)
+# 30 ONWALLPARTIALFILL (specify list of bits indexes for N,S,W,E attachments, base texture, cuttoffs for N,S,W,E (tile orientation, not world orientation!); like buttons, tripwire hooks)
+# 31 WIRE (specify wire texture, wire crossing texture (if any); like redstone wire, tripwire)
+# 32 BITANCHOR (specify face texture; draws faces anchored to different block side for each data bit combination; like vines)
+# 33 STEM (specify straight stem texture, bent stem texture; like pumpkin stem, melon stem)
+# 34 LEVER (specify lever base texture, lever handle texture; like lever)
+# 35 SIGNPOST (specify sign base texture, sign pole texture; like sign post)
+# 36 SPECIAL (handled by id, like brewing stand, dragon egg, beacon, stonewall, flowerpot, anvil, etc)
+#
+# You can use / as a texture name to use empty tile
+#
+# blockid blocktype *
+1 SOLID stone
+2 SOLID grass_side grass_side grass_top
+3 SOLID dirt
+4 SOLID stonebrick #cobblestone
+5 SOLIDDATA wood wood_spruce wood_birch wood_jungle # oak / spruce / birch / jungle planks
+6 ITEMDATAFILL sapling sapling_spruce sapling_birch sapling_jungle #sapling 
+7 SOLID bedrock
+8 SPECIAL water
+##9 - skip, it's water too
+10 SPECIAL lava
+##11 - skip, it's lava too
+12 SOLID sand
+13 SOLID gravel
+14 SOLID oreGold
+15 SOLID oreIron
+16 SOLID oreCoal
+17 SOLIDDATATRUNKROTATED S 1 tree_top tree_side 1 tree_top tree_spruce 1 tree_top tree_birch 1 tree_top tree_jungle # oak / spruce / birch / jungle wood
+18 SOLIDDATAFILL leaves leaves_spruce leaves_birch leaves_jungle # oak / spruce / birch / jungle leaves
+19 SOLID sponge
+20 SOLID glass
+21 SOLID oreLapis
+22 SOLID blockLapis
+23 SOLIDORIENTED 2 3 4 5 dispenser_front furnace_side furnace_top #dispenser
+24 SOLIDDATATRUNK sandstone_top sandstone_side sandstone_top sandstone_carved sandstone_top sandstone_smooth #sandstone
+25 SOLID musicBlock #note block
+26 SPECIAL bed_feet_end bed_feet_side bed_feet_top bed_head_end bed_head_side bed_head_top #bed
+27 RAILPOWERED goldenRail goldenRail_powered #powered rail
+28 RAIL detectorRail #detector rail
+29 SOLIDROTATED piston_top_sticky piston_side piston_bottom #sticky piston
+30 ITEMDATA web #cobweb
+31 ITEMDATA deadbush tallgrass fern #tall grass
+32 ITEMDATA deadbush #dead bush
+33 SOLIDROTATED piston_top piston_side piston_bottom #piston
+##34 technical block
+35 SOLIDDATA cloth_0 cloth_1 cloth_2 cloth_3 cloth_4 cloth_5 cloth_6 cloth_7 cloth_8 cloth_9 cloth_10 cloth_11 cloth_12 cloth_13 cloth_14 cloth_15 #wool
+##36 technical block
+37 ITEMDATA flower #dandelion
+38 ITEMDATA rose #rose
+39 ITEMDATA mushroom_brown
+40 ITEMDATA mushroom_red
+41 SOLID blockGold
+42 SOLID blockIron
+43 SOLIDDATATRUNK stoneslab_top stoneslab_side sandstone_top sandstone_side wood wood stonebrick stonebrick brick brick stonebricksmooth stonebricksmooth netherBrick netherBrick #double slabs
+44 SLABDATATRUNK stoneslab_top stoneslab_side sandstone_top sandstone_side wood wood stonebrick stonebrick brick brick stonebricksmooth stonebricksmooth netherBrick netherBrick #slabs
+45 SOLID brick
+46 SOLID tnt_side tnt_side tnt_top #tnt
+47 SOLID bookshelf bookshelf wood #bookshelf
+48 SOLID stoneMoss
+49 SOLID obsidian
+50 TORCH torch
+51 SOLIDTRANSPARENT / fire_0 fire_0 fire_0 fire_0 / #fire
+52 SOLID mobSpawner
+53 STAIR wood #oak wood stairs
+54 CHEST /chest /largechest #chest
+55 WIRE redstoneDust_line redstoneDust_cross #redstone wire
+56 SOLID oreDiamond
+57 SOLID blockDiamond
+58 SOLID workbench_front workbench_side workbench_top #workbench
+59 ITEMDATA crops_0 crops_1 crops_2 crops_3 crops_4 crops_5 crops_6 crops_7 #wheat
+60 SOLID dirt dirt farmland_dry #farmland
+61 SOLIDORIENTED 2 3 4 5 furnace_front furnace_side furnace_top #furnace
+62 SOLIDORIENTED 2 3 4 5 furnace_front_lit furnace_side furnace_top #burning furnace
+63 SIGNPOST wood wood #sign post
+64 DOOR doorWood_lower doorWood_upper #wooden door
+65 ONWALLPARTIALFILL 3 2 5 4 ladder 0 0 0 0 #ladder
+66 RAIL rail rail_turn #rails
+67 STAIR stonebrick #cobblestone stairs
+68 ONWALLPARTIALFILL 3 2 5 4 wood 4 4 0 0 #wall sign
+69 LEVER stonebrick lever
+70 SOLIDPARTIAL 14 0 stone stone stone #stone pressure plate
+71 DOOR doorIron_lower doorIron_upper #iron door
+72 SOLIDPARTIAL 14 0 wood wood wood #wooden pressure plate
+73 SOLID oreRedstone
+74 SOLID oreRedstone #glowing
+75 TORCH redtorch
+76 TORCH redtorch_lit
+77 ONWALLPARTIALFILL 3 4 1 2 stone 6 6 5 5 #stone button
+78 SOLIDDATAPARTIALFILL snow snow snow 14 0 12 0 10 0 8 0 6 0 4 0 2 0 0 0 #snow
+79 SOLIDOBSTRUCTED ice
+80 SOLID snow
+81 SOLID cactus_side cactus_side cactus_top #cactus
+82 SOLID clay
+83 ITEMDATA reeds #d'uh!
+84 SOLID musicBlock musicBlock jukebox_top #jukebox
+85 FENCE wood #fence
+86 SOLIDORIENTED 2 0 1 3 pumpkin_face pumpkin_side pumpkin_top #pumpkin
+87 SOLID hellrock #netherrack
+88 SOLID hellsand #soul sand
+89 SOLID lightgem #glowstone block
+90 SOLID portal #nether portal
+91 SOLIDORIENTED 2 0 1 3 pumpkin_jack pumpkin_side pumpkin_top #jack 'o' lantern
+92 SOLIDPARTIAL 8 0 cake_side cake_side cake_top #cake
+93 REPEATER repeater redtorch #repeater inactive
+94 REPEATER repeater_lit redtorch_lit #repeater active
+##95 locked chest isn't actually in a game
+96 TRAPDOOR trapdoor
+97 SOLIDDATA stone stonebrick stonebricksmooth # smooth / cobblestone / stone brick monster egg
+98 SOLIDDATA stonebricksmooth stonebricksmooth_mossy stonebricksmooth_cracked stonebricksmooth_carved # normal / mossy / cracked / chiseled stone bricks
+99 MUSHROOM mushroom_inside mushroom_skin_stem mushroom_skin_brown #huge brown mushroom
+100 MUSHROOM mushroom_inside mushroom_skin_stem mushroom_skin_red #huge red mushroom
+101 PANEDATA fenceIron #iron bars
+102 PANEDATA glass #glass pane
+103 SOLID melon_side melon_side melon_top #melon
+104 STEM /stem_straight /stem_bent #pumpkin stem
+105 STEM /stem_straight /stem_bent #melon stem
+106 BITANCHOR vine #vines
+107 FENCEGATE wood #fence gate
+108 STAIR brick #brick stairs
+109 STAIR stonebricksmooth #stone brick stairs
+110 SOLID mycel_side mycel_side mycel_top #mycelium
+111 SOLIDPARTIAL 16 0 / / waterlily #lily pad
+112 SOLID netherBrick
+113 FENCE netherBrick #nether brick fence
+114 STAIR netherBrick #nether brick stairs
+115 MULTIITEMDATA netherStalk_0 netherStalk_1 netherStalk_1 netherStalk_2 #nether wart
+116 SOLIDPARTIAL 4 0 enchantment_side enchantment_side enchantment_top #enchantment table
+117 SPECIAL brewingStand_base brewingStand #brewing stand
+118 SPECIAL cauldron_side water #cauldron
+119 SOLIDPARTIAL 4 0 / / endportal #end portal
+120 SOLIDPARTIAL 3 0 endframe_side endframe_side endframe_top #end portal frame
+121 SOLID whiteStone #endstone
+122 SPECIAL dragonEgg #dragon egg
+# 1.2
+123 SOLID redstoneLight
+124 SOLID redstoneLight_lit
+# 1.3
+125 SOLIDDATA wood wood_spruce wood_birch wood_jungle #wooden double slabs
+126 SLABDATA wood wood_spruce wood_birch wood_jungle #wooden slabs
+127 ITEMDATAORIENTED 0 2 3 1 cocoa_0 cocoa_1 cocoa_2 #cocoa pods
+128 STAIR sandstone_side sandstone_top #sandstone stairs
+129 SOLID oreEmerald
+130 CHEST /enderchest #enderchest
+131 ONWALLPARTIALFILL 0 2 3 1 tripWireSource 0 0 0 0 #tripwire hook
+132 WIRE tripWire #tripwire
+133 SOLID blockEmerald
+134 STAIR wood_spruce #spruce wood stairs
+135 STAIR wood_birch #birch wood stairs
+136 STAIR wood_jungle #jungle wood stairs
+# 1.4
+137 SOLID commandBlock
+138 SPECIAL beacon obsidian 20 #beacon
+139 WALLDATA stonebrick stoneMoss #cobblestone / mossy cobblestone wall
+140 SPECIAL flowerPot dirt rose flower sapling sapling_spruce sapling_birch sapling_jungle mushroom_red mushroom_brown cactus_side deadbush fern #flower pot
+141 MULTIITEMDATA carrots_0 carrots_0 carrots_1 carrots_1 carrots_2 carrots_2 carrots_2 carrots_3 #carrots
+142 MULTIITEMDATA potatoes_0 potatoes_0 potatoes_1 potatoes_1 potatoes_2 potatoes_2 potatoes_2 potatoes_3 #potatoes
+143 ONWALLPARTIALFILL 3 4 1 2 wood 6 6 5 5 #wooden button
+##144 mob heads
+145 SPECIAL anvil_base anvil_top anvil_top_damaged_1 anvil_top_damaged_2 #anvil
+# 1.5
+146 CHEST /trap_small /trap_large #trapped chest
+147 SOLIDPARTIAL 14 0 blockGold blockGold blockGold #weighted pressure plate (light)
+148 SOLIDPARTIAL 14 0 blockIron blockIron blockIron #weighted pressure plate (heavy)
+149 REPEATER comparator redtorch #repeater inactive
+150 REPEATER comparator_lit redtorch_lit #repeater active
+151 SOLIDPARTIAL 10 0 daylightDetector_side daylightDetector_side daylightDetector_top #daylight sensor
+152 SOLID blockRedstone
+153 SOLID netherquartz
+154 SPECIAL hopper hopper_inside hopper_top #hopper
+155 SOLIDDATATRUNKROTATED O 0 quartzblock_top quartzblock_side 0 quartzblock_chiseled_top quartzblock_chiseled 1 quartzblock_lines_top quartzblock_lines #block of quartz
+156 STAIR quartzblock_side quartzblock_top #quartz stairs
+157 RAILPOWERED activatorRail activatorRail_powered #activator rail
+158 SOLIDORIENTED 2 3 4 5 dropper_front furnace_side furnace_top #dropper

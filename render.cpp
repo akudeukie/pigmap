@@ -214,13 +214,17 @@ void buildDependencies(SceneGraph& sg, int pcol1, int pcol2, int which)
 
 #define CONNECTFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 85 || cfid == 107)
 #define CONNECTNETHERFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 113 || cfid == 107)
+#define CONNECTPANE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) && cfid != 130)
+// fromside: 0 - north south, 1 - east west
+#define CONNECTREDSTONE(cfid, cfdata, fromside) (cfid == 28 || cfid == 55 || cfid == 75 || cfid == 76 || ((cfid == 93 || cfid == 94) && cfdata % 2 == fromside ) || cfid == 146 || cfid == 149 || cfid == 150 || cfid == 152)
+#define CONNECTTRIPWIRE(cfid, cfdata) (cfid == 131 || cfid == 132)
 // Cobblestone wall 
 // does NOT connect with:                |    does connect with:
 // 46   TNT                              |    120 Ender Portal Frame
 // 89   Glowstone
 // 54   Chest
 // 130  Ender Chest
-// 29   Sticky Piston()()
+// 29   Sticky Piston
 // 33   Piston
 #define CONNECTCOBBLESTONEWALL(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) && cfid != 46 && cfid != 89 && cfid != 54 && cfid != 130 && cfid != 29 && cfid != 33 || cfid == 139 || cfid == 107 || cfid == 120)
 #define CONNECTCOBBLESTONEWALLUP(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid != 0)
@@ -236,187 +240,164 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	uint16_t blockIDN, blockIDS, blockIDE, blockIDW, blockIDU, blockIDD;
 	uint8_t blockDataN, blockDataS, blockDataE, blockDataW, blockDataU, blockDataD;
 
-	if (node.bimgoffset == 8)  // solid water
+	//if (node.bimgoffset == 8)  // solid water
+	if ((blockID == 8 || blockID == 9) && (blockData == 0 || blockData > 7))  // solid water
 	{
-		// if there's water to the W or N, we don't draw those faces
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		bool waterN = blockIDN == 8 || blockIDN == 9;
+		// if there's water to the W or S, we don't draw those faces
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
 		bool waterW = blockIDW == 8 || blockIDW == 9;
-		if (waterW && waterN)
-			node.bimgoffset = 157;
+		bool waterS = blockIDS == 8 || blockIDS == 9;
+		if (waterW && waterS)
+			node.bimgoffset += 1;
 		else if (waterW)
-			node.bimgoffset = 178;
-		else if (waterN)
-			node.bimgoffset = 179;
+			node.bimgoffset += 2;
+		else if (waterS)
+			node.bimgoffset += 3;
 	}
 	else if (blockID == 79)  // ice
 	{
-		// if there's ice to the W or N, we don't draw those faces
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		bool iceN = blockIDN == 79;
+		// if there's ice to the W or S, we don't draw those faces
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
 		bool iceW = blockIDW == 79;
-		if (iceW && iceN)
-			node.bimgoffset = 180;
+		bool iceS = blockIDS == 79;
+		if (iceW && iceS)
+			node.bimgoffset += 1;
 		else if (iceW)
-			node.bimgoffset = 181;
-		else if (iceN)
-			node.bimgoffset = 182;
+			node.bimgoffset += 2;
+		else if (iceS)
+			node.bimgoffset += 3;
 	}
-	else if (blockID == 85)  // fence
+	else if (blockID == 85 || blockID == 113)  // fence, nether fence
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		int bits = (CONNECTFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
+		int bits;
+		if(blockID == 85) // fence
+			bits = (CONNECTFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
 		            (CONNECTFENCE(blockIDS, blockDataS) ? 0x2 : 0) |
 		            (CONNECTFENCE(blockIDE, blockDataE) ? 0x4 : 0) |
 		            (CONNECTFENCE(blockIDW, blockDataW) ? 0x8 : 0);
-		if (bits != 0)
-			node.bimgoffset = 157 + bits;
-	}
-	else if (blockID == 113)  // nether fence
-	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		int bits = (CONNECTNETHERFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
+		else // nether fence
+			bits = (CONNECTNETHERFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
 		            (CONNECTNETHERFENCE(blockIDS, blockDataS) ? 0x2 : 0) |
 		            (CONNECTNETHERFENCE(blockIDE, blockDataE) ? 0x4 : 0) |
 		            (CONNECTNETHERFENCE(blockIDW, blockDataW) ? 0x8 : 0);
 		if (bits != 0)
-			node.bimgoffset = 316 + bits;
+			node.bimgoffset += bits;
 	}
 	else if (blockID == 139) // cobblestone wall
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
 		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
 		int bits = (CONNECTCOBBLESTONEWALL(blockIDN, blockDataN) ? 0x1 : 0) |
 					(CONNECTCOBBLESTONEWALL(blockIDS, blockDataS) ? 0x2 : 0) |
 					(CONNECTCOBBLESTONEWALL(blockIDE, blockDataE) ? 0x4 : 0) |
 					(CONNECTCOBBLESTONEWALL(blockIDW, blockDataW) ? 0x8 : 0);
-		// Mossy or normal cobblestone wall?
-		int imgoffset = (blockData == 1) ? 18 : 0; // difference in the tiles between cobblestone and mossy walls
+		
 		if (bits != 0) 
 		{
 			if(CONNECTCOBBLESTONEWALLUP(blockIDU, blockDataU))
-				node.bimgoffset = 554 + bits;
+				node.bimgoffset += bits;
 			else if (bits == 3)
-				node.bimgoffset = 570;
+				node.bimgoffset += 16;
 			else if(bits == 12)
-				node.bimgoffset = 571;
+				node.bimgoffset += 17;
 			else
-				node.bimgoffset = 554 + bits;
-			node.bimgoffset += imgoffset;
+				node.bimgoffset += bits;
 		}
 	}
-	else if (blockID == 54)  // chest
+	else if (blockID == 54 || blockID == 146)  // chest
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
 		// if there's another chest to the N, make this a southern half
-		if (blockIDN == 54)
-			node.bimgoffset = (blockDataN == 3) ? 488 : 492;
+		if (blockIDN == blockID)
+			node.bimgoffset += (blockDataN == 4) ? 6 : 10;
 		// ...or if there's one to the S, make this a northern half
-		else if (blockIDS == 54)
-			node.bimgoffset = (blockDataS == 3) ? 487 : 491;
+		else if (blockIDS == blockID)
+			node.bimgoffset += (blockDataS == 4) ? 5 : 9;
 		// ...same deal with E/W
-		else if (blockIDW == 54)
-			node.bimgoffset = (blockDataW == 4) ? 489 : 493;
-		else if (blockIDE == 54)
-			node.bimgoffset = (blockDataE == 4) ? 490 : 494;
+		else if (blockIDW == blockID)
+			node.bimgoffset += (blockDataW == 2) ? 4 : 5;
+		else if (blockIDE == blockID)
+			node.bimgoffset += (blockDataE == 2) ? 3 : 4;
 	}
-	else if (blockID == 95)  // locked chest
+	else if (blockID == 101 || blockID == 102)  // iron bars, glass pane
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		// if there's an opaque block to the W, we should face N instead
-		if (rj.blockimages.isOpaque(blockIDW, blockDataW))
-			node.bimgoffset = 271;
-	}
-	else if (blockID == 101)  // iron bars
-	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = (blockIDN != 0 ? 0x1 : 0) | (blockIDS != 0 ? 0x2 : 0) | (blockIDE != 0 ? 0x4 : 0) | (blockIDW != 0 ? 0x8 : 0);
-		static const int ironBarOffsets[16] = {355, 419, 420, 356, 421, 357, 359, 365, 422, 358, 360, 364, 361, 363, 362, 355};
-		node.bimgoffset = ironBarOffsets[bits];
+		int bits = ((blockIDN == blockID || CONNECTPANE(blockIDN, blockDataN)) ? 0x1 : 0) |
+		            ((blockIDS == blockID || CONNECTPANE(blockIDS, blockDataS)) ? 0x2 : 0) |
+		            ((blockIDE == blockID || CONNECTPANE(blockIDE, blockDataE)) ? 0x4 : 0) |
+		            ((blockIDW == blockID || CONNECTPANE(blockIDW, blockDataW)) ? 0x8 : 0);
+		if (bits != 0 && bits != 15)
+			node.bimgoffset += bits;
 	}
-	else if (blockID == 102)  // glass pane
+	else if (blockID == 55 || blockID == 132)  // wire
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
-		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = (blockIDN != 0 ? 0x1 : 0) | (blockIDS != 0 ? 0x2 : 0) | (blockIDE != 0 ? 0x4 : 0) | (blockIDW != 0 ? 0x8 : 0);
-		static const int glassPaneOffsets[16] = {366, 423, 424, 367, 425, 368, 370, 376, 426, 369, 371, 375, 372, 374, 373, 366};
-		node.bimgoffset = glassPaneOffsets[bits];
-	}
-	else if (blockID == 132)  // tripwire
-	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets EW)
-		int bits = (blockIDN != 0 ? 0x1 : 0) | (blockIDS != 0 ? 0x2 : 0) | (blockIDE != 0 ? 0x4 : 0) | (blockIDW != 0 ? 0x8 : 0);
-		static const int tripwireOffsets[16] = {549, 544, 544, 544, 549, 545, 547, 553, 549, 546, 548, 552, 549, 551, 550, 543};
-		node.bimgoffset = tripwireOffsets[bits];
+		int bits = 0;
+		if(blockID == 55)
+			bits = (CONNECTREDSTONE(blockIDN, blockDataN, 0) ? 0x1 : 0) |
+					(CONNECTREDSTONE(blockIDS, blockDataS, 0) ? 0x2 : 0) | 
+					(CONNECTREDSTONE(blockIDW, blockDataW, 1) ? 0x4 : 0) | 
+					(CONNECTREDSTONE(blockIDE, blockDataE, 1) ? 0x8 : 0);
+		else if(blockID == 132)
+			bits = (CONNECTTRIPWIRE(blockIDN, blockDataN) ? 0x1 : 0) | 
+					(CONNECTTRIPWIRE(blockIDS, blockDataS) ? 0x2 : 0) | 
+					(CONNECTTRIPWIRE(blockIDW, blockDataW) ? 0x4 : 0) | 
+					(CONNECTTRIPWIRE(blockIDE, blockDataE) ? 0x8 : 0);
+		else
+			bits = (blockIDN == blockID ? 0x1 : 0) | 
+					(blockIDS == blockID ? 0x2 : 0) | 
+					(blockIDW == blockID ? 0x4 : 0) | 
+					(blockIDE == blockID ? 0x8 : 0);
+		static const int wireOffsets[16] = {0, 1, 1, 1, 2, 6, 7, 8, 2, 3, 4, 5, 2, 9, 10, 11};
+		node.bimgoffset += wireOffsets[bits];
 	}
 	else if ((blockID == 104 || blockID == 105) && blockData == 7)  // full stem
 	{
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(0,1,0))
+		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
+		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
+		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
+		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
 		int target = (blockID == 104) ? 86 : 103;
 		if (blockIDN == target)
-			node.bimgoffset = 403;
+			node.bimgoffset += 1;
 		else if (blockIDS == target)
-			node.bimgoffset = 404;
-		else if (blockIDE == target)
-			node.bimgoffset = 405;
+			node.bimgoffset += 2;
 		else if (blockIDW == target)
-			node.bimgoffset = 406;
+			node.bimgoffset += 3;
+		else if (blockIDE == target)
+			node.bimgoffset += 4;
 	}
-	else if (blockID == 64)  // wooden door
+	else if (blockID == 64 || blockID == 71)  // wooden door, iron door
 	{
 		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
 		GETNEIGHBORUD(blockIDD, blockDataD, BlockIdx(0,0,-1))
-		bool isTop = blockIDD == 64;
+		bool isTop = blockIDD == blockID;
 		uint8_t blockDataTop = isTop ? blockData : blockDataU;
 		uint8_t blockDataBottom = isTop ? blockDataD : blockData;
 		int dir = blockDataBottom % 4;
 		if (blockDataBottom & 0x4)
 			dir = (dir + ((blockDataTop & 0x1) ? 3 : 1)) % 4;
-		static const int topImages[4] = {81, 78, 80, 79};
-		static const int bottomImages[4] = {77, 74, 76, 75};
-		node.bimgoffset = isTop ? topImages[dir] : bottomImages[dir];
-	}
-	else if (blockID == 71)  // iron door
-	{
-		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
-		GETNEIGHBORUD(blockIDD, blockDataD, BlockIdx(0,0,-1))
-		bool isTop = blockIDD == 71;
-		uint8_t blockDataTop = isTop ? blockData : blockDataU;
-		uint8_t blockDataBottom = isTop ? blockDataD : blockData;
-		int dir = blockDataBottom % 4;
-		if (blockDataBottom & 0x4)
-			dir = (dir + ((blockDataTop & 0x1) ? 3 : 1)) % 4;
-		static const int topImages[4] = {118, 115, 117, 116};
-		static const int bottomImages[4] = {114, 111, 113, 112};
-		node.bimgoffset = isTop ? topImages[dir] : bottomImages[dir];
+		node.bimgoffset += isTop ? (dir + 4) : dir;
 	}
 
 	//!!!!!!!! for now, only fully opaque blocks can have drop-off shadows, but some others like snow could

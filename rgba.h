@@ -88,6 +88,13 @@ void darken(RGBAImage& img, const ImageRect& rect, double r, double g, double b)
 // copy source rect into destination rect of same size
 void blit(const RGBAImage& source, const ImageRect& srect, RGBAImage& dest, int32_t dxstart, int32_t dystart);
 
+// offset image tile
+void imgoffset(RGBAImage& dest, int32_t dxoffset, int32_t dyoffset);
+// offset image tile (repeat tile)
+void imgtileoffset(RGBAImage& dest, int32_t dxoffset, int32_t dyoffset);
+// crop image and fill cropped space with empty pixels
+void imgcrop(RGBAImage& dest, const ImageRect& drect);
+
 // flip the target rect in the X direction
 void flipX(RGBAImage& img, const ImageRect& rect);
 

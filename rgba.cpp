@@ -121,7 +121,7 @@ bool RGBAImage::readPNG(const string& filename)
 	if (info == NULL)
 		return false;
 	cleaner.info = info;
-
+	
 	if (setjmp(png_jmpbuf(png)))
 		return false;
 
@@ -129,8 +129,9 @@ bool RGBAImage::readPNG(const string& filename)
 	png_set_sig_bytes(png, 8);
 
 	png_read_info(png, info);
-	if (PNG_COLOR_TYPE_RGB_ALPHA != png_get_color_type(png, info) || 8 != png_get_bit_depth(png, info))
+	if (PNG_COLOR_TYPE_RGB_ALPHA != png_get_color_type(png, info) || 8 != png_get_bit_depth(png, info)) 
 		return false;
+
 	w = png_get_image_width(png, info);
 	h = png_get_image_height(png, info);
 	data.resize(w*h);
@@ -331,6 +332,44 @@ void blit(const RGBAImage& source, const ImageRect& srect, RGBAImage& dest, int3
 	for (int32_t yoff = ybegin, sy = srect.y + ybegin, dy = dystart + ybegin; yoff < yend; yoff++, sy++, dy++)
 		for (int32_t xoff = xbegin, sx = srect.x + xbegin, dx = dxstart + xbegin; xoff < xend; xoff++, sx++, dx++)
 			dest(dx,dy) = source(sx,sy);
+}
+
+void imgoffset(RGBAImage& dest, int32_t dxoffset, int32_t dyoffset)
+{
+	dxoffset = dxoffset % dest.w;
+	dyoffset = dyoffset % dest.h;
+	int32_t xbegin = max(0, -dxoffset);
+	int32_t xend = min(dest.w, dest.w -dxoffset);
+	int32_t ybegin = max(0, -dyoffset);
+	int32_t yend = min(dest.h, dest.h -dyoffset);
+	vector<RGBAPixel> newdata;
+	newdata.resize(dest.w*dest.h);
+	for(int sy = ybegin, dy = ybegin + dyoffset; sy < yend; sy++, dy++)
+		for (int sx = xbegin, dx = xbegin + dxoffset; sx < xend; sx++, dx++)
+			newdata[dy*dest.w + dx] = dest.data[sy*dest.w+sx];
+	dest.data.swap(newdata);		
+}
+
+void imgtileoffset(RGBAImage& dest, int32_t dxoffset, int32_t dyoffset)
+{
+	dxoffset = dxoffset % dest.w;
+	dyoffset = dyoffset % dest.h;
+	vector<RGBAPixel> newdata;
+	newdata.resize(dest.w*dest.h);
+	for(int y = 0; y < dest.h; y++)
+		for (int x = 0; x < dest.w; x++)
+			newdata[((y + dyoffset)%dest.h)*dest.w+(x + dxoffset)%dest.w] = dest.data[y*dest.w+x];
+	dest.data.swap(newdata);
+}
+
+void imgcrop(RGBAImage& dest, const ImageRect& drect)
+{	
+	int32_t dw = drect.x + drect.w;
+	int32_t dh = drect.y + drect.h;
+	for(int y = 0; y < dest.h; y++)
+		for (int x = 0; x < dest.w; x++)
+			if(x < drect.x || x >= dw || y < drect.y || y >= dh)
+				dest(x,y) = dest(x,y) & 0x00ffffff;
 }
 
 void flipX(RGBAImage& img, const ImageRect& rect)

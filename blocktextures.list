@@ -1,0 +1,317 @@
+# blocktextures.list
+#
+# List of textures to include for processing
+# Enter full name of the texture (should be PNG images) on separate line
+# You can specify from which directory to read texture (switch current directory, as to say). To do that use the following syntax:
+# $ /new/path
+# $ /
+# Directories should be relative to the image path, or path where renderer is being executed from.
+#
+# You can prefix texture with a / (slash), to apply different filters to the texture.
+# !!!NOTE!!! Filters will be applied only to the copies of textures stored in memory. Original textures will be untouched.
+# If you do so, you can use a couple of directive after a texture name. 
+# !!!NOTE!!! Directive are executed in order of appearance. EXPAND, CHEST and LCHEST create new textures. If you want to apply other filters,
+#    they (filters) should go -AFTER- EXPAND directive, and -BEFORE- CHEST and LCHEST directives.
+# !!!NOTE!!! CHEST and LCHEST are similar, but should not be used together.
+# Here is a list of available directives and their syntax:
+#  - RENAME newtexturename
+#    	Assigns different name to a texture. You can, for example, read the same texture twice, but second one a different name and apply
+#    	few more other filters. Renamed texture then can be used in block descriptor list.
+#    	=Example=
+#    	/ leaves.png RENAME leaves_birch.png
+#  - DARKEN darkenRed darkenGreen darkenBlue
+#    	Darkens each separate color channel of the texture based on given amount. Amount is specified as a decimal number[0-1].
+#    	=Example=
+#    	/ leaves.png DARKEN 0.3 1.0 0.1
+#  - OFFSET offsetX offsetY
+#    	Offset texture by specified offset. Offset is specified in pixels (x out 16). 
+#    	If offset exceeds the width or height of the texture, modulus of an offset will be taken.
+#    	Offset texture is not tiled. If you want to offset texture, so it leaves it's size area, just use blank texture (/).
+#    	=Example=
+#    	/ stem_straight.png OFFSET 0 14
+#  - OFFSETTILE offsetX offsetY
+#    	Same as OFFSET, but texture is tiled - it repeats it's pattern from opposite side where it is being offset.
+#  - EXPAND expandX expandY
+#    	Expands texture by a specified amount by resizing it. Using this directive results in new texture. Use this directive before other directives.
+#    	=Example=
+#    	/ cake_top.png EXPAND 1 1
+#  - CROP top right bottom left
+#    	Crops texture from each side by a specified amount. Amount is specified in pixels (x out 16).
+#    	=Example=
+#    	/ stem_straight.png CROP 14 0 0 0
+#  - FLIPX
+#    	Flips the texture along the x axis. The result is mirrored texture.
+#    	=Example=
+#    	/ stem_straight.png FLIPX
+#  - CHEST
+#  - LCHEST
+#    	CHEST and LCHEST are directives for generating special tile, in this case - specific tiles for small and large chests. 
+#    	Since original textures are chest model textures, they don't fit in tile size (e.g. 16x16). Renderer will create required tiles for chest blocks,
+#    	and then will use them to build block tiles. 
+#    	To use textures with this directive, just prefix the original name with / (slash) in block descriptor list.
+#
+$ /textures/blocks
+activatorRail.png
+activatorRail_powered.png
+anvil_base.png
+anvil_top.png
+anvil_top_damaged_1.png
+anvil_top_damaged_2.png
+beacon.png
+bed_feet_end.png
+bed_feet_side.png
+bed_feet_top.png
+bed_head_end.png
+bed_head_side.png
+bed_head_top.png
+bedrock.png
+blockDiamond.png
+blockEmerald.png
+blockGold.png
+blockIron.png
+blockLapis.png
+blockRedstone.png
+bookshelf.png
+brewingStand.png
+brewingStand_base.png
+brick.png
+/ cactus_bottom.png EXPAND 1 1
+/ cactus_side.png EXPAND 1 1
+/ cactus_top.png EXPAND 1 1
+/ cake_bottom.png EXPAND 1 1
+/ cake_inner.png EXPAND 1 1
+/ cake_side.png EXPAND 1 1
+/ cake_top.png EXPAND 1 1
+carrots_0.png
+carrots_1.png
+carrots_2.png
+carrots_3.png
+cauldron_bottom.png
+cauldron_inner.png
+cauldron_side.png
+cauldron_top.png
+clay.png
+cloth_0.png
+cloth_1.png
+cloth_10.png
+cloth_11.png
+cloth_12.png
+cloth_13.png
+cloth_14.png
+cloth_15.png
+cloth_2.png
+cloth_3.png
+cloth_4.png
+cloth_5.png
+cloth_6.png
+cloth_7.png
+cloth_8.png
+cloth_9.png
+cocoa_0.png
+cocoa_1.png
+cocoa_2.png
+commandBlock.png
+comparator.png
+comparator_lit.png
+crops_0.png
+crops_1.png
+crops_2.png
+crops_3.png
+crops_4.png
+crops_5.png
+crops_6.png
+crops_7.png
+daylightDetector_side.png
+daylightDetector_top.png
+deadbush.png
+destroy_0.png
+destroy_1.png
+destroy_2.png
+destroy_3.png
+destroy_4.png
+destroy_5.png
+destroy_6.png
+destroy_7.png
+destroy_8.png
+destroy_9.png
+detectorRail.png
+dirt.png
+dispenser_front.png
+doorIron_lower.png
+doorIron_upper.png
+doorWood_lower.png
+doorWood_upper.png
+dragonEgg.png
+dropper_front.png
+enchantment_bottom.png
+enchantment_side.png
+enchantment_top.png
+endframe_eye.png
+endframe_side.png
+endframe_top.png
+farmland_dry.png
+farmland_wet.png
+fenceIron.png
+/ fern.png DARKEN 0.6 0.95 0.3
+fire_0.png
+fire_1.png
+flower.png
+flowerPot.png
+furnace_front.png
+furnace_front_lit.png
+furnace_side.png
+furnace_top.png
+glass.png
+goldenRail.png
+goldenRail_powered.png
+grass_side.png
+grass_side_overlay.png
+/ grass_top.png DARKEN 0.6 0.95 0.3
+gravel.png
+hellrock.png
+hellsand.png
+hopper.png
+hopper_inside.png
+hopper_top.png
+ice.png
+itemframe_back.png
+jukebox_top.png
+ladder.png
+lava.png
+/ leaves.png DARKEN 0.3 1.0 0.1
+#/ leaves_opaque.png DARKEN 0.3 1.0 0.1
+/ leaves.png RENAME leaves_birch.png DARKEN 0.55 0.9 0.1
+/ leaves_jungle.png DARKEN 0.35, 1.0, 0.05
+#/ leaves_jungle_opaque.png DARKEN 0.35, 1.0, 0.05
+/ leaves_spruce.png DARKEN 0.3 1.0 0.45
+#/ leaves_spruce_opaque.png DARKEN 0.3 1.0 0.45
+lever.png
+lightgem.png
+melon_side.png
+melon_top.png
+mobSpawner.png
+mushroom_brown.png
+mushroom_inside.png
+mushroom_red.png
+mushroom_skin_brown.png
+mushroom_skin_red.png
+mushroom_skin_stem.png
+musicBlock.png
+mycel_side.png
+mycel_top.png
+netherBrick.png
+netherStalk_0.png
+netherStalk_1.png
+netherStalk_2.png
+netherquartz.png
+obsidian.png
+oreCoal.png
+oreDiamond.png
+oreEmerald.png
+oreGold.png
+oreIron.png
+oreLapis.png
+oreRedstone.png
+piston_bottom.png
+piston_inner_top.png
+piston_side.png
+piston_top.png
+piston_top_sticky.png
+portal.png
+potatoes_0.png
+potatoes_1.png
+potatoes_2.png
+potatoes_3.png
+pumpkin_face.png
+pumpkin_jack.png
+pumpkin_side.png
+pumpkin_top.png
+quartzblock_bottom.png
+quartzblock_chiseled.png
+quartzblock_chiseled_top.png
+quartzblock_lines.png
+quartzblock_lines_top.png
+quartzblock_side.png
+quartzblock_top.png
+rail.png
+rail_turn.png
+/ redstoneDust_cross.png DARKEN 0.9 0.1 0.1
+#redstoneDust_cross_overlay.png
+/ redstoneDust_line.png DARKEN 0.9 0.1 0.1
+#redstoneDust_line_overlay.png
+redstoneLight.png
+redstoneLight_lit.png
+redtorch.png
+redtorch_lit.png
+reeds.png
+repeater.png
+repeater_lit.png
+results.png
+rose.png
+sand.png
+sandstone_bottom.png
+sandstone_carved.png
+sandstone_side.png
+sandstone_smooth.png
+sandstone_top.png
+sapling.png
+sapling_birch.png
+sapling_jungle.png
+sapling_spruce.png
+snow.png
+snow_side.png
+sponge.png
+/ stem_bent.png RENAME /stem_bent.png_0 DARKEN 0.75 0.6 0.3
+/ stem_bent.png RENAME /stem_bent.png_1 DARKEN 0.75 0.6 0.3 FLIPX
+/ stem_straight.png RENAME /stem_straight.png_0 DARKEN 0.45 0.95 0.4 OFFSET 0 14
+/ stem_straight.png RENAME /stem_straight.png_1 DARKEN 0.45 0.95 0.4 OFFSET 0 12
+/ stem_straight.png RENAME /stem_straight.png_2 DARKEN 0.45 0.95 0.4 OFFSET 0 10
+/ stem_straight.png RENAME /stem_straight.png_3 DARKEN 0.45 0.95 0.4 OFFSET 0 8
+/ stem_straight.png RENAME /stem_straight.png_4 DARKEN 0.45 0.95 0.4 OFFSET 0 6
+/ stem_straight.png RENAME /stem_straight.png_5 DARKEN 0.45 0.95 0.4 OFFSET 0 4
+/ stem_straight.png RENAME /stem_straight.png_6 DARKEN 0.45 0.95 0.4 OFFSET 0 2
+/ stem_straight.png RENAME /stem_straight.png_7 DARKEN 0.75 0.6 0.3
+stone.png
+stoneMoss.png
+stonebrick.png
+stonebricksmooth.png
+stonebricksmooth_carved.png
+stonebricksmooth_cracked.png
+stonebricksmooth_mossy.png
+stoneslab_side.png
+stoneslab_top.png
+/ tallgrass.png DARKEN 0.6 0.95 0.3
+thinglass_top.png
+tnt_bottom.png
+tnt_side.png
+tnt_top.png
+torch.png
+trapdoor.png
+tree_birch.png
+tree_jungle.png
+tree_side.png
+tree_spruce.png
+tree_top.png
+/ tripWire.png OFFSET 0 6
+tripWireSource.png
+/ vine.png DARKEN 0.35 1.0 0.15
+water.png
+/ waterlily.png DARKEN 0.3 0.95 0.3
+web.png
+whiteStone.png
+wood.png
+wood_birch.png
+wood_jungle.png
+wood_spruce.png
+workbench_front.png
+workbench_side.png
+workbench_top.png
+$ /item
+/ chest.png CHEST
+/ largechest.png LCHEST
+/ enderchest.png CHEST
+$ /item/chests
+/ trap_small.png CHEST
+/ trap_large.png LCHEST
+$ /
+endportal.png
