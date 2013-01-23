@@ -6,7 +6,7 @@ pigmap : $(objects)
 pigmap.o : pigmap.cpp blockimages.h chunk.h map.h render.h rgba.h tables.h utils.h world.h
 	g++ -c pigmap.cpp -O3
 blockimages.o : blockimages.cpp blockimages.h rgba.h utils.h
-	g++ -c blockimages.cpp -O3
+	g++ -c blockimages.cpp -O3 -std=c++0x
 chunk.o : chunk.cpp chunk.h map.h region.h tables.h utils.h
 	g++ -c chunk.cpp -O3
 map.o : map.cpp map.h utils.h
