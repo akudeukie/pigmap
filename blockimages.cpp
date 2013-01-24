@@ -72,6 +72,12 @@ bool BlockImages::create(int B, const string& imgpath)
 	
 	ifstream texturelist(blocktexturesfile.c_str());
 	ifstream descriptorlist(blockdescriptorfile.c_str());
+	if(descriptorlist.fail())
+        {
+                descriptorlist.close();
+                cerr << blockdescriptorfile << " is missing" << endl;
+                return false;
+        }
 	setBlockDescriptors(descriptorlist);
 	blockversion = setOffsets();
 	
@@ -110,12 +116,6 @@ bool BlockImages::create(int B, const string& imgpath)
 	{
 		texturelist.close();
 		cerr << blocktexturesfile << " is missing" << endl;
-		return false;
-	}
-	else if(descriptorlist.fail())
-	{
-		descriptorlist.close();
-		cerr << blockdescriptorfile << " is missing" << endl;
 		return false;
 	}
 	else if (!construct(B, texturelist, descriptorlist, imgpath))
