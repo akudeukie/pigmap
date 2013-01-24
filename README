@@ -203,6 +203,20 @@ Defaults to 1.  Each thread requires around 250-300 MB of RAM (they work in diff
 map and keep separate caches of chunk data).  Returns from extra threads may diminish quickly as the
 disk becomes a bottleneck.
 
+e. [optional] output image file format (-f)
+
+Defaults to png. The output is either done as png files, jpeg files or both. Jpeg can be compressed to
+smaller file sizes than png and may be preferrable for web use, but incremental rendering only reads
+png files, since jpeg is a lossy format. The "both" option is supplied to deal with this situation -
+both file formats will be written, jpeg used in the html map and png files can be kept for future
+incremental renders.
+
+f. [optional] Jpeg quality (-j)
+
+Defaults to 75. A number between 1 and 100 that determines what quality level jpeg files are written.
+Higher means better quality but larger file sizes. Has no effect (obviously) if the output file format
+is not set to jpeg or both.
+
 
 2. Params for full renders only:
 

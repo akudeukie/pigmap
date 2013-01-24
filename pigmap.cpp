@@ -44,6 +44,7 @@
 #include <pthread.h>
 #include <unistd.h>
 
+#include "version.h"
 #include "blockimages.h"
 #include "rgba.h"
 #include "map.h"
@@ -175,7 +176,7 @@ int assignThreadTasks(vector<WorkerThreadParams>& wtps, const TileTable& ttable,
 	}
 
 	// perform actual assignments
-	for (int i = 0; i < best_assignments.size(); i++)
+	for (uint i = 0; i < best_assignments.size(); i++)
 	{
 		wtps[best_assignments[i]].zoomtiles.push_back(best_reqzoomtiles[i]);
 		wtps[best_assignments[i]].rj->stats.reqtilecount += best_costs[i];
@@ -311,10 +312,18 @@ bool expandMap(const string& outputpath)
 	renameFile(outputpath + "/old2", outputpath + "/2/1");
 	renameFile(outputpath + "/old3", outputpath + "/3/0");
 	// ...now the zoom 1 files
-	renameFile(outputpath + "/0.png", outputpath + "/0/3.png");
-	renameFile(outputpath + "/1.png", outputpath + "/1/2.png");
-	renameFile(outputpath + "/2.png", outputpath + "/2/1.png");
-	renameFile(outputpath + "/3.png", outputpath + "/3/0.png");
+	const char* formatExtensions[] = {".png", ".jpeg"};
+	ImageSettings::Format formats[] = {ImageSettings::Format_PNG, ImageSettings::Format_JPEG};
+	for (int i = 0; i < 2; ++i) {
+		if (ImageSettings::format == formats[i] || ImageSettings::format == ImageSettings::Format_Both)
+		{
+			const char* format = formatExtensions[i];
+			renameFile(outputpath + "/0" + format, outputpath + "/0/3" + format);
+			renameFile(outputpath + "/1" + format, outputpath + "/1/2" + format);
+			renameFile(outputpath + "/2" + format, outputpath + "/2/1" + format);
+			renameFile(outputpath + "/3" + format, outputpath + "/3/0" + format);
+		}
+	}
 
 	// build the new zoom 1 tiles
 	RGBAImage old0img;
@@ -324,7 +333,7 @@ bool expandMap(const string& outputpath)
 	if (used0)
 	{
 		reduceHalf(new0img, ImageRect(tileSize/2, tileSize/2, tileSize/2, tileSize/2), old0img);
-		new0img.writePNG(outputpath + "/0.png");
+		new0img.writeImage(outputpath + "/0");
 	}
 	RGBAImage old1img;
 	bool used1 = old1img.readPNG(outputpath + "/1/2.png");
@@ -333,7 +342,7 @@ bool expandMap(const string& outputpath)
 	if (used1)
 	{
 		reduceHalf(new1img, ImageRect(0, tileSize/2, tileSize/2, tileSize/2), old1img);
-		new1img.writePNG(outputpath + "/1.png");
+		new1img.writeImage(outputpath + "/1");
 	}
 	RGBAImage old2img;
 	bool used2 = old2img.readPNG(outputpath + "/2/1.png");
@@ -342,7 +351,7 @@ bool expandMap(const string& outputpath)
 	if (used2)
 	{
 		reduceHalf(new2img, ImageRect(tileSize/2, 0, tileSize/2, tileSize/2), old2img);
-		new2img.writePNG(outputpath + "/2.png");
+		new2img.writeImage(outputpath + "/2");
 	}
 	RGBAImage old3img;
 	bool used3 = old3img.readPNG(outputpath + "/3/0.png");
@@ -351,7 +360,7 @@ bool expandMap(const string& outputpath)
 	if (used3)
 	{
 		reduceHalf(new3img, ImageRect(0, 0, tileSize/2, tileSize/2), old3img);
-		new3img.writePNG(outputpath + "/3.png");
+		new3img.writeImage(outputpath + "/3");
 	}
 
 	// build the new base tile
@@ -365,7 +374,7 @@ bool expandMap(const string& outputpath)
 		reduceHalf(newbase, ImageRect(0, tileSize/2, tileSize/2, tileSize/2), new2img);
 	if (used3)
 		reduceHalf(newbase, ImageRect(tileSize/2, tileSize/2, tileSize/2, tileSize/2), new3img);
-	newbase.writePNG(outputpath + "/base.png");
+	newbase.writeImage(outputpath + "/base");
 
 	// write new params (with incremented baseZoom)
 	mp.baseZoom++;
@@ -373,7 +382,8 @@ bool expandMap(const string& outputpath)
 
 	// touch all tiles, to prevent browser cache mishaps (since many new tiles will have the same
 	//  filename as some old tile, but possibly with an earlier timestamp)
-	system((string("find ") + outputpath + " -exec touch {} +").c_str());
+	if (system((string("find ") + outputpath + " -exec touch {} +").c_str()) < 0)
+        cerr << "Error changing mtimes. Ignoring..." << endl;
 
 	return true;
 }
@@ -393,7 +403,8 @@ void writeHTML(const RenderJob& rj, const string& htmlpath)
 	if (!replace(templateText, "{tileSize}", tostring(rj.mp.tileSize())) ||
 	    !replace(templateText, "{B}", tostring(rj.mp.B)) ||
 	    !replace(templateText, "{T}", tostring(rj.mp.T)) ||
-	    !replace(templateText, "{baseZoom}", tostring(rj.mp.baseZoom)))
+	    !replace(templateText, "{baseZoom}", tostring(rj.mp.baseZoom)) ||
+	    !replace(templateText, "{format}", ImageSettings::format == ImageSettings::Format_PNG ? "png" : "jpeg"))
 	{
 		cerr << "template.html is corrupt" << endl;
 		return;
@@ -863,6 +874,14 @@ bool validateParamsIncremental(const string& inputpath, const string& outputpath
 		cerr << "-B, -T, -Z, -y, -Y not allowed for incremental updates" << endl;
 		return false;
 	}
+	
+	// Format cannot be jpeg-only
+	if (ImageSettings::format == ImageSettings::Format_JPEG)
+	{
+		cerr << "PNG image output is required for incremental rendering" << endl
+			 << "Please use format \"png\" or \"both\"" << endl;
+		return false;
+	}
 
 	// the various paths must be non-empty
 	if (inputpath.empty() || outputpath.empty())
@@ -992,7 +1011,7 @@ int main(int argc, char **argv)
 	bool expand = false;
 
 	int c;
-	while ((c = getopt(argc, argv, "i:o:g:c:B:T:Z:h:w:xm:r:y:Y:")) != -1)
+	while ((c = getopt(argc, argv, "i:o:g:c:B:T:Z:t:w:xm:r:y:Y:j:f:h")) != -1)
 	{
 		switch (c)
 		{
@@ -1011,6 +1030,27 @@ int main(int argc, char **argv)
 			case 'r':
 				regionlist = optarg;
 				break;
+			case 'f':
+				if (strcasecmp(optarg, "png") == 0)
+					ImageSettings::format = ImageSettings::Format_PNG;
+				else if (strcasecmp(optarg, "jpg") == 0 || strcasecmp(optarg, "jpeg") == 0)
+					ImageSettings::format = ImageSettings::Format_JPEG;
+				else if (strcasecmp(optarg, "both") == 0)
+					ImageSettings::format = ImageSettings::Format_Both;
+				else
+				{
+					cerr << "Unrecognized format: " << optarg << ", expected png/jpeg/both" << endl;
+					return 1;
+				}
+				break;
+			case 'j':
+				ImageSettings::jpegQuality = atoi(optarg);
+				if (ImageSettings::jpegQuality < 1 || ImageSettings::jpegQuality > 100)
+				{
+					cerr << "Invalid jpeg quality (" << ImageSettings::jpegQuality << ")" << endl;
+					return 1;
+				}
+				break;
 			case 'B':
 				mp.B = atoi(optarg);
 				break;
@@ -1028,7 +1068,7 @@ int main(int argc, char **argv)
 				mp.maxY = atoi(optarg);
 				mp.userMaxY = true;
 				break;
-			case 'h':
+			case 't':
 				threads = atoi(optarg);
 				break;
 			case 'x':
@@ -1040,8 +1080,31 @@ int main(int argc, char **argv)
 			case 'w':
 				testworldsize = atoi(optarg);
 				break;
+			case 'h':
+				cerr << "PigMap " << PIGMAP_VERSION << endl
+                                     << "-i <path> minecraft world input path. This should be the base of the world" << endl
+                                     << "-o <path> output path. This is the diretory to put the html file in" << endl
+                                     << "-g <path> image path. This is where to find the minecraft terrain.png and also to output the cached blocks." << endl
+                                     << "-c [filename] file containing chunks to render" << endl
+                                     << "-r [filename] file containing regions to render" << endl
+                                     << "-f [format] rendering output format - png,jpg or both" << endl
+                                     << "-j <int> jpeg quality (1-100)" << endl
+                                     << "-Y <int> maximum Y value" << endl
+                                     << "-y <int> minimum Y value" << endl
+                                     << "-Z <int> (base zoom)?" << endl
+                                     << "-h <int> threads to use for rendering" << endl
+                                     << "-B <int> Block size - size in pixels of each minecraft block (2-16)!" << endl
+                                     << "-T <int> Tile Size Division. (2-16)" << endl
+                                     << "-Z <int> Map zoom levels (0-30)" << endl
+                                     << "-m <path> location of html input files" << endl
+                                     << "-x turn on expanding of map, for when base zoom is too small for the tiling" << endl
+                                     << "-w <int> turn on test mode, and create test world of size <int>" << endl
+                                     << endl
+                                     << " Tile Size Determines how large the tiles on the map are." << endl 
+                                     << " A larger size saves disk space, but makes tiles load slower." << endl;
+                               return 0;
 			case '?':
-				cerr << "-" << (char)optopt << ": unrecognized option or missing argument" << endl;
+				cerr << "-" << (char)optopt << ": unrecognized option or missing argument, -h displays help." << endl;
 				return 1;
 			default:  // should never happen (?)
 				cerr << "getopt not working?" << endl;

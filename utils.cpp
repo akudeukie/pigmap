@@ -143,7 +143,7 @@ int readGzFile(const string& filename, vector<uint8_t>& data)
 	if (bytesRead == -1)
 		return -2;
 	pos += bytesRead;
-	while (bytesRead == requestSize)
+	while ((uint) bytesRead == requestSize)
 	{
 		// if there's still more, reallocate and read more
 		data.resize(data.size() * 2);
@@ -451,7 +451,7 @@ pair<int64_t, double> schedule(const vector<int64_t>& costs, vector<int>& assign
 
 	// sort costs
 	vector<pair<int64_t, int> > sortedcosts;  // first is cost, second is index in original vector
-	for (int i = 0; i < costs.size(); i++)
+	for (uint i = 0; i < costs.size(); i++)
 		sortedcosts.push_back(make_pair(costs[i], i));
 	sort(sortedcosts.begin(), sortedcosts.end(), greater<pair<int64_t, int> >());
 

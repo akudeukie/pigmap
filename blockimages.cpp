@@ -188,7 +188,6 @@ int generateLargeChestTiles(unordered_map<std::string, RGBAImage>& blockTextures
 	// top texture gets copied straight over--note that the original texture is 30x14, but
 	//  we're putting it into two squares
 	resize(texture, ImageRect(14*scale, 0, 30*scale, 14*scale), chesttiles, ImageRect(0, 0, tilesize*2, tilesize));
-	
 	// front tile gets the front lid texture plus the front bottom texture, then the latch
 	//  on top of that
 	RGBAImage fronttiles;

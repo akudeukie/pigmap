@@ -22,6 +22,8 @@
 #include <string>
 #include <vector>
 
+#include "utils.h"
+
 // IMPORTANT NOTE:
 //  This program was written before the location of the sun moved in Minecraft Beta 1.9 or so,
 //   therefore all of the N/S/E/W directions here are now wrong--rotated 90 degrees from what they
@@ -78,9 +80,9 @@
 //  are the farthest blocks NED, NEU, SEU, SWU, SWD, NWD
 //
 //               SEU
-//              / . \
-//             /  .  \
-//           NEU  .  SWU
+//              / . \`
+//             /  .  \`
+//           NEU  .  SWU 
 //            |\  .  /|
 //            | \ . / |
 //            |  NWU  |
@@ -164,6 +166,12 @@ struct RegionIdx;
 struct TileIdx;
 struct ZoomTileIdx;
 
+enum RenderMode {
+	RenderMode_Classic,
+	RenderMode_Daylight,
+	RenderMode_Night
+};
+
 struct MapParams
 {
 	int B;  // block size; must be >= 2
@@ -179,8 +187,11 @@ struct MapParams
 	//  in pigmap.params
 	bool userMinY, userMaxY;
 
-	MapParams(int b, int t, int bz) : B(b), T(t), baseZoom(bz), minY(0), maxY(255), userMinY(false), userMaxY(false) {}
-	MapParams() : B(0), T(0), baseZoom(0), minY(0), maxY(255), userMinY(false), userMaxY(false) {}
+	// Render in this mode - classic (all full-light), daylight or night
+	RenderMode mode;
+
+	MapParams(int b, int t, int bz) : B(b), T(t), baseZoom(bz), minY(0), maxY(255), userMinY(false), userMaxY(false), mode(RenderMode_Classic) {}
+	MapParams() : B(0), T(0), baseZoom(0), minY(0), maxY(255), userMinY(false), userMaxY(false), mode(RenderMode_Classic) {}
 
 	int tileSize() const {return 64*B*T;}
 
@@ -354,5 +365,10 @@ struct ZoomTileIdx
 	// no operator+; addition shouldn't be defined for tiles with different zoom levels
 	ZoomTileIdx add(int dx, int dy) const {return ZoomTileIdx(x + dx, y + dy, zoom);}
 };
+
+inline ChunkIdx BlockIdx::getChunkIdx() const
+{
+	return ChunkIdx(floordiv16(x), floordiv16(z));
+}
 
 #endif // MAP_H

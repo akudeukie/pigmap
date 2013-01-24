@@ -90,7 +90,7 @@ void ChunkTable::copyFrom(const ChunkTable& ctable)
 
 
 
-RequiredChunkIterator::RequiredChunkIterator(ChunkTable& ctable) : chunktable(ctable), current(-1,-1)
+RequiredChunkIterator::RequiredChunkIterator(ChunkTable& ctable) : current(-1,-1), chunktable(ctable)
 {
 	// if the very first chunk is required, use it
 	cgi = csi = bi = 0;
@@ -281,7 +281,7 @@ void TileTable::copyFrom(const TileTable& ttable)
 
 
 
-RequiredTileIterator::RequiredTileIterator(TileTable& ttable) : tiletable(ttable), current(-1,-1)
+RequiredTileIterator::RequiredTileIterator(TileTable& ttable) : current(-1,-1), tiletable(ttable)
 {
 	// if the very first tile is required, use it
 	ztgi = ztsi = zbi = 0;
@@ -338,7 +338,7 @@ ZoomTileIdx getZoomTile(int tgi, const MapParams& mp)
 }
 
 TileGroupIterator::TileGroupIterator(TileTable& ttable, const MapParams& mparams)
-	: tiletable(ttable), mp(mparams), zti(-1,-1,-1)
+	: zti(-1,-1,-1), tiletable(ttable), mp(mparams)
 {
 	// if the very first TileGroup is non-NULL, use it
 	tgi = 0;

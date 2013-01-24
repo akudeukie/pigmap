@@ -38,19 +38,55 @@ bool ChunkData::loadFromOldFile(const vector<uint8_t>& filebuf)
 	uint8_t idsTag[13] = {7, 0, 6, 'B', 'l', 'o', 'c', 'k', 's', 0, 0, 128, 0};
 	uint8_t dataTag[11] = {7, 0, 4, 'D', 'a', 't', 'a', 0, 0, 64, 0};
 	bool foundIDs = false, foundData = false;
+
+	fill(blockIDs, blockIDs + 65536, 0);
+	fill(blockData, blockData + 32768, 0);
+	
 	for (vector<uint8_t>::const_iterator it = filebuf.begin(); it != filebuf.end(); it++)
 	{
 		if (*it != 7)
 			continue;
 		if (!foundIDs && it + 13 + 32768 <= filebuf.end() && equal(it, it + 13, idsTag))
 		{
-			copy(it + 13, it + 13 + 32768, blockIDs);
+			for (unsigned x = 0; x < 16; ++x)
+			{
+				for (unsigned z = 0; z < 16; ++z)
+				{
+					for (unsigned y = 0; y < 128; ++y)
+					{
+						unsigned oldloc = (x * 16 + z) * 128 + y;
+						unsigned newloc = (y * 16 + z) * 16 + x;
+						blockIDs[newloc] = *(it + 13 + oldloc);
+					}
+				}
+			}
 			it += 13 + 32768 - 1;  // one less because of the loop we're in
 			foundIDs = true;
 		}
 		else if (!foundData && it + 11 + 16384 <= filebuf.end() && equal(it, it + 11, dataTag))
 		{
-			copy(it + 11, it + 11 + 16384, blockData);
+			for (unsigned x = 0; x < 16; ++x)
+			{
+				for (unsigned z = 0; z < 16; ++z)
+				{
+					for (unsigned y = 0; y < 128; ++y)
+					{
+						unsigned oldloc = (x * 16 + z) * 128 + y;
+						uint8_t data = *(it + 11 + oldloc / 2);
+						if (oldloc % 2 == 0)
+							data &= 0xf;
+						else
+							data = (data & 0xf0) >> 4;
+						
+						unsigned newloc = (y * 16 + z) * 16 + x;
+						uint8_t& writeloc = blockData[newloc / 2];
+						if (newloc % 2 == 0)
+							writeloc = (writeloc & 0xf0) | data;
+						else
+							writeloc = (writeloc & 0xf) | (data << 4);
+					}
+				}
+			}
 			it += 11 + 16384 - 1;  // one less because of the loop we're in
 			foundData = true;
 		}
@@ -111,10 +147,20 @@ struct chunkSection
 	
 	void extract(ChunkData& chunkdata) const
 	{
-		copy(blockIDs, blockIDs + 4096, chunkdata.blockIDs + (y * 4096));
+		uint16_t* destination = chunkdata.blockIDs + (y * 4096);
+		for (unsigned i = 0; i < 4096; ++i)
+		{
+			uint16_t val = blockIDs[i];
+			if (blockAdd)
+			{
+				if (i % 2 == 0)
+					val |= (blockAdd[i / 2] & 0xf) << 8;
+				else
+					val |= (blockAdd[i / 2] & 0xf0) << 4;
+			}
+			destination[i] = val;
+		}
 		copy(blockData, blockData + 2048, chunkdata.blockData + (y * 2048));
-		if (blockAdd != NULL)
-			copy(blockAdd, blockAdd + 2048, chunkdata.blockAdd + (y * 2048));
 	}
 };
 
@@ -244,7 +290,6 @@ bool ChunkData::loadFromAnvilFile(const vector<uint8_t>& filebuf)
 {
 	anvil = true;
 	fill(blockIDs, blockIDs + 65536, 0);
-	fill(blockAdd, blockAdd + 32768, 0);
 	fill(blockData, blockData + 32768, 0);
 
 	const uint8_t *ptr = &(filebuf[0]);
@@ -286,29 +331,29 @@ ChunkCacheStats& ChunkCacheStats::operator+=(const ChunkCacheStats& ccs)
 
 ChunkData* ChunkCache::getData(const PosChunkIdx& ci)
 {
-	int e = getEntryNum(ci);
 	int state = chunktable.getDiskState(ci);
-
 	if (state == ChunkSet::CHUNK_UNKNOWN)
 		stats.misses++;
 	else
 		stats.hits++;
 
-	// if we've already tried and failed to read the chunk, don't try again
-	if (state == ChunkSet::CHUNK_CORRUPTED || state == ChunkSet::CHUNK_MISSING)
-		return &blankdata;
-
 	// if the chunk is in the cache, return it
 	if (state == ChunkSet::CHUNK_CACHED)
 	{
-		if (entries[e].ci != ci)
+		int e = getEntryNum(ci);
+		ChunkCacheEntry& entry = entries[e];
+		if (entry.ci != ci)
 		{
 			cerr << "grievous chunk cache failure!" << endl;
 			cerr << "[" << ci.x << "," << ci.z << "]   [" << entries[e].ci.x << "," << entries[e].ci.z << "]" << endl;
 			exit(-1);
 		}
-		return &entries[e].data;
+		return &entry.data;
 	}
+
+	// if we've already tried and failed to read the chunk, don't try again
+	if (state == ChunkSet::CHUNK_MISSING || state == ChunkSet::CHUNK_CORRUPTED)
+		return &blankdata;
 
 	// if this is a full render and the chunk is not required, we already know it doesn't exist
 	bool req = chunktable.isRequired(ci);
@@ -340,6 +385,7 @@ ChunkData* ChunkCache::getData(const PosChunkIdx& ci)
 			stats.missing++;
 		return &blankdata;
 	}
+	int e = getEntryNum(ci);
 	if (state != ChunkSet::CHUNK_CACHED || entries[e].ci != ci)
 	{
 		cerr << "grievous chunk cache failure!" << endl;

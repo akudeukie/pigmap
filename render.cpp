@@ -17,6 +17,7 @@
 
 #include <memory>
 #include <iostream>
+#include <assert.h>
 
 #include "render.h"
 #include "utils.h"
@@ -44,7 +45,7 @@ int64_t topPixelY(int64_t x, int64_t bboxTop, int B)
 }
 
 TileBlockIterator::TileBlockIterator(const TileIdx& ti, const MapParams& mp)
-	: tile(ti), mparams(mp), current(0,0), expandedBBox(Pixel(0,0), Pixel(0,0))
+	: current(0,0), mparams(mp), tile(ti), expandedBBox(Pixel(0,0), Pixel(0,0))
 {
 	expandedBBox = ti.getBBox(mparams);
 	expandedBBox.topLeft -= Pixel(2*mparams.B - 1, 2*mparams.B - 1);
@@ -180,54 +181,77 @@ void buildDependencies(SceneGraph& sg, int pcol1, int pcol2, int which)
 	}
 }
 
-#define GETNEIGHBOR(gnid, gndata, gnoff) \
-{ \
-	BlockIdx bin = bi + gnoff; \
-	PosChunkIdx cin = bin.getChunkIdx(); \
-	if (cin == ci) \
-	{ \
-		gnid = chunkdata->id(bin); \
-		gndata = chunkdata->data(bin); \
-	} \
-	else \
-	{ \
-		ChunkData *cdn = rj.chunkcache->getData(cin); \
-		gnid = cdn->id(bin); \
-		gndata = cdn->data(bin); \
-	} \
+struct Block
+{
+	uint16_t id;
+	uint8_t data;
+	
+	inline Block(uint16_t id_, uint8_t data_): id(id_), data(data_) {}
+};
+
+inline Block getNeighbor(ChunkData *chunkdata, RenderJob& rj, const PosChunkIdx& ci, const BlockIdx& bin)
+{
+	PosChunkIdx cin = bin.getChunkIdx();
+	if (cin != ci)
+		chunkdata = rj.chunkcache->getData(cin);
+
+	return Block(chunkdata->id(bin), chunkdata->data(bin));
 }
 
-#define GETNEIGHBORUD(gnid, gndata, gnoff) \
-{ \
-	BlockIdx bin = bi + gnoff; \
-	if (bin.y >= 0 && bin.y <= 255) \
-	{ \
-		gnid = chunkdata->id(bin); \
-		gndata = chunkdata->data(bin); \
-	} \
-	else \
-	{ \
-		gnid = 0; \
-		gndata = 0; \
-	} \
+inline Block getNeighborUD(ChunkData* chunkdata, const BlockIdx& bin)
+{
+	if (bin.y >= 0 && bin.y <= 255)
+		return Block(chunkdata->id(bin), chunkdata->data(bin));
+	return Block(0, 0);
 }
 
-#define CONNECTFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 85 || cfid == 107)
-#define CONNECTNETHERFENCE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid == 113 || cfid == 107)
-#define CONNECTPANE(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) && cfid != 130)
-// fromside: 0 - north south, 1 - east west
-#define CONNECTREDSTONE(cfid, cfdata, fromside) (cfid == 28 || cfid == 55 || cfid == 75 || cfid == 76 || ((cfid == 93 || cfid == 94) && cfdata % 2 == fromside ) || cfid == 146 || cfid == 149 || cfid == 150 || cfid == 152)
-#define CONNECTTRIPWIRE(cfid, cfdata) (cfid == 131 || cfid == 132)
-// Cobblestone wall 
-// does NOT connect with:                |    does connect with:
-// 46   TNT                              |    120 Ender Portal Frame
-// 89   Glowstone
-// 54   Chest
-// 130  Ender Chest
-// 29   Sticky Piston
-// 33   Piston
-#define CONNECTCOBBLESTONEWALL(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) && cfid != 46 && cfid != 89 && cfid != 54 && cfid != 130 && cfid != 29 && cfid != 33 || cfid == 139 || cfid == 107 || cfid == 120)
-#define CONNECTCOBBLESTONEWALLUP(cfid, cfdata) (rj.blockimages.isOpaque(cfid, cfdata) || cfid != 0)
+inline bool connectFence(RenderJob& rj, const Block& block)
+{
+	return block.id == 85 || block.id == 107 || rj.blockimages.isOpaque(block.id, block.data);
+}
+
+inline bool connectNetherFence(RenderJob& rj, const Block& block)
+{
+	return block.id == 113 || block.id == 107 || rj.blockimages.isOpaque(block.id, block.data);
+}
+
+inline bool connectCobblestoneWall(RenderJob& rj, const Block& block)
+{
+    return block.id == 139 || block.id == 107 || block.id == 120 || (rj.blockimages.isOpaque(block.id, block.data) && block.id != 46 && block.id != 89 && block.id != 54 && block.id != 130 && block.id != 29 && block.id != 33);
+}
+
+inline bool connectCobblestoneWallUp(RenderJob& rj, const Block& block)
+{
+    return block.id != 0 || rj.blockimages.isOpaque(block.id, block.data);
+}
+
+inline bool connectPane(RenderJob& rj, const Block& block)
+{
+    return rj.blockimages.isOpaque(block.id, block.data) && block.id != 130;
+}
+
+// fromside: 0 - NS, 1 - WE
+inline bool connectRedstone(RenderJob& rj, const Block& block, uint8_t fromside)
+{
+    return cfid == 28 || cfid == 55 || cfid == 75 || cfid == 75 || cfid ==146 || cfid ==149 || cfid == 150 || cfid == 152 || ((cfid == 93 || cfid == 94) && block.data % 2 == fromside);
+}
+
+inline bool connectTripWire(RenderJob& rj, const Block& block)
+{
+    return block.id == 131 || block.id == 132;
+}
+
+inline int getNeighborAirMask(ChunkData* chunkdata, RenderJob& rj, const PosChunkIdx& ci, const BlockIdx& bi)
+{
+	Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+	Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+	Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+	Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+	return (blockN.id != 0 ? 0x1 : 0) |
+			(blockS.id != 0 ? 0x2 : 0) |
+			(blockE.id != 0 ? 0x4 : 0) |
+			(blockW.id != 0 ? 0x8 : 0);
+}
 
 // given a node that must be drawn, see if we need to do anything special to it--that is, anything that
 //  doesn't depend purely on its blockID/blockData
@@ -237,17 +261,15 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 {
 	const BlockIdx& bi = node.bi;
 	
-	uint16_t blockIDN, blockIDS, blockIDE, blockIDW, blockIDU, blockIDD;
-	uint8_t blockDataN, blockDataS, blockDataE, blockDataW, blockDataU, blockDataD;
-
+<<<<<<< HEAD
 	//if (node.bimgoffset == 8)  // solid water
 	if ((blockID == 8 || blockID == 9) && (blockData == 0 || blockData > 7))  // solid water
 	{
 		// if there's water to the W or S, we don't draw those faces
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
-		bool waterW = blockIDW == 8 || blockIDW == 9;
-		bool waterS = blockIDS == 8 || blockIDS == 9;
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		bool waterW = blockW.id == 8 || blockW.id == 9;
+		bool waterS = blockS.id == 8 || blockS.id == 9;
 		if (waterW && waterS)
 			node.bimgoffset += 1;
 		else if (waterW)
@@ -258,10 +280,11 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	else if (blockID == 79)  // ice
 	{
 		// if there's ice to the W or S, we don't draw those faces
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
-		bool iceW = blockIDW == 79;
-		bool iceS = blockIDS == 79;
+                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+
+		bool iceW = blockW.id == 79;
+		bool iceS = blockS.id == 79;
 		if (iceW && iceS)
 			node.bimgoffset += 1;
 		else if (iceW)
@@ -271,39 +294,39 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if (blockID == 85 || blockID == 113)  // fence, nether fence
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
+                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		int bits;
 		if(blockID == 85) // fence
-			bits = (CONNECTFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
-		            (CONNECTFENCE(blockIDS, blockDataS) ? 0x2 : 0) |
-		            (CONNECTFENCE(blockIDE, blockDataE) ? 0x4 : 0) |
-		            (CONNECTFENCE(blockIDW, blockDataW) ? 0x8 : 0);
+			bits = (connectFence(rj, blockN) ? 0x1 : 0) |
+		            (connectFence(rj, blockS) ? 0x2 : 0) |
+		            (connectFence(rj, blockE) ? 0x4 : 0) |
+		            (connectFence(rj, blockW) ? 0x8 : 0);
 		else // nether fence
-			bits = (CONNECTNETHERFENCE(blockIDN, blockDataN) ? 0x1 : 0) |
-		            (CONNECTNETHERFENCE(blockIDS, blockDataS) ? 0x2 : 0) |
-		            (CONNECTNETHERFENCE(blockIDE, blockDataE) ? 0x4 : 0) |
-		            (CONNECTNETHERFENCE(blockIDW, blockDataW) ? 0x8 : 0);
+			bits = (connectNetherFence(rj, blockN) ? 0x1 : 0) |
+		            (connectNetherFence(rj, blockS) ? 0x2 : 0) |
+		            (connectNetherFence(rj, blockE) ? 0x4 : 0) |
+		            (connectNetherFence(rj, blockW) ? 0x8 : 0);
 		if (bits != 0)
 			node.bimgoffset += bits;
 	}
 	else if (blockID == 139) // cobblestone wall
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
-		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
-		int bits = (CONNECTCOBBLESTONEWALL(blockIDN, blockDataN) ? 0x1 : 0) |
-					(CONNECTCOBBLESTONEWALL(blockIDS, blockDataS) ? 0x2 : 0) |
-					(CONNECTCOBBLESTONEWALL(blockIDE, blockDataE) ? 0x4 : 0) |
-					(CONNECTCOBBLESTONEWALL(blockIDW, blockDataW) ? 0x8 : 0);
+                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
+		int bits = (connectCobblestoneWall(rj, blockN) ? 0x1 : 0) |
+					(connectCobblestoneWall(rj, blockS) ? 0x2 : 0) |
+					(connectCobblestoneWall(rj, blockE) ? 0x4 : 0) |
+					(connectCobblestoneWall(rj, blockW) ? 0x8 : 0);
 		
 		if (bits != 0) 
 		{
-			if(CONNECTCOBBLESTONEWALLUP(blockIDU, blockDataU))
+			if(connectCobblestoneWallUp(rj, blockU))
 				node.bimgoffset += bits;
 			else if (bits == 3)
 				node.bimgoffset += 16;
@@ -315,85 +338,85 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if (blockID == 54 || blockID == 146)  // chest
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
+                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// if there's another chest to the N, make this a southern half
-		if (blockIDN == blockID)
-			node.bimgoffset += (blockDataN == 4) ? 6 : 10;
+		if (blockN.id == blockID)
+			node.bimgoffset += (blockN.data == 4) ? 6 : 10;
 		// ...or if there's one to the S, make this a northern half
-		else if (blockIDS == blockID)
-			node.bimgoffset += (blockDataS == 4) ? 5 : 9;
+		else if (blockS.id == blockID)
+			node.bimgoffset += (blockS.data == 4) ? 5 : 9;
 		// ...same deal with E/W
-		else if (blockIDW == blockID)
-			node.bimgoffset += (blockDataW == 2) ? 4 : 5;
-		else if (blockIDE == blockID)
-			node.bimgoffset += (blockDataE == 2) ? 3 : 4;
+		else if (blockW.id == blockID)
+			node.bimgoffset += (blockW.data == 2) ? 4 : 5;
+		else if (blockE.id == blockID)
+			node.bimgoffset += (blockE.data == 2) ? 3 : 4;
 	}
 	else if (blockID == 101 || blockID == 102)  // iron bars, glass pane
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
+                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = ((blockIDN == blockID || CONNECTPANE(blockIDN, blockDataN)) ? 0x1 : 0) |
-		            ((blockIDS == blockID || CONNECTPANE(blockIDS, blockDataS)) ? 0x2 : 0) |
-		            ((blockIDE == blockID || CONNECTPANE(blockIDE, blockDataE)) ? 0x4 : 0) |
-		            ((blockIDW == blockID || CONNECTPANE(blockIDW, blockDataW)) ? 0x8 : 0);
+		int bits = ((blockIDN == blockID || connectPane(rj, blockN)) ? 0x1 : 0) |
+		            ((blockIDS == blockID || connectPane(rj, blockS)) ? 0x2 : 0) |
+		            ((blockIDE == blockID || connectPane(rj, blockE)) ? 0x4 : 0) |
+		            ((blockIDW == blockID || connectPane(rj, blockW)) ? 0x8 : 0);
 		if (bits != 0 && bits != 15)
 			node.bimgoffset += bits;
 	}
 	else if (blockID == 55 || blockID == 132)  // wire
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
+                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets EW)
 		int bits = 0;
 		if(blockID == 55)
-			bits = (CONNECTREDSTONE(blockIDN, blockDataN, 0) ? 0x1 : 0) |
-					(CONNECTREDSTONE(blockIDS, blockDataS, 0) ? 0x2 : 0) | 
-					(CONNECTREDSTONE(blockIDW, blockDataW, 1) ? 0x4 : 0) | 
-					(CONNECTREDSTONE(blockIDE, blockDataE, 1) ? 0x8 : 0);
+			bits = (connectRedstone(rj, blockN, 0) ? 0x1 : 0) |
+					(connectRedstone(rj, blockS, 0) ? 0x2 : 0) | 
+					(connectRedstone(rj, blockW, 1) ? 0x4 : 0) | 
+					(connectRedstone(rj, blockE, 1) ? 0x8 : 0);
 		else if(blockID == 132)
-			bits = (CONNECTTRIPWIRE(blockIDN, blockDataN) ? 0x1 : 0) | 
-					(CONNECTTRIPWIRE(blockIDS, blockDataS) ? 0x2 : 0) | 
-					(CONNECTTRIPWIRE(blockIDW, blockDataW) ? 0x4 : 0) | 
-					(CONNECTTRIPWIRE(blockIDE, blockDataE) ? 0x8 : 0);
+			bits = (connectTripWire(rj, blockN) ? 0x1 : 0) | 
+					(connectTripWire(rj, blockS) ? 0x2 : 0) | 
+					(connectTripWire(rj, blockW) ? 0x4 : 0) | 
+					(connectTripWire(rj, blockE) ? 0x8 : 0);
 		else
-			bits = (blockIDN == blockID ? 0x1 : 0) | 
-					(blockIDS == blockID ? 0x2 : 0) | 
-					(blockIDW == blockID ? 0x4 : 0) | 
-					(blockIDE == blockID ? 0x8 : 0);
+			bits = (blockN.id == blockID ? 0x1 : 0) | 
+					(blockS.id == blockID ? 0x2 : 0) | 
+					(blockW.id == blockID ? 0x4 : 0) | 
+					(blockE.id == blockID ? 0x8 : 0);
 		static const int wireOffsets[16] = {0, 1, 1, 1, 2, 6, 7, 8, 2, 3, 4, 5, 2, 9, 10, 11};
 		node.bimgoffset += wireOffsets[bits];
 	}
 	else if ((blockID == 104 || blockID == 105) && blockData == 7)  // full stem
 	{
-		GETNEIGHBOR(blockIDW, blockDataW, BlockIdx(-1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDN, blockDataN, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(0,1,0))
+                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		int target = (blockID == 104) ? 86 : 103;
-		if (blockIDN == target)
+		if (blockN.id == target)
 			node.bimgoffset += 1;
-		else if (blockIDS == target)
+		else if (blockS.id == target)
 			node.bimgoffset += 2;
-		else if (blockIDW == target)
+		else if (blockW.id == target)
 			node.bimgoffset += 3;
-		else if (blockIDE == target)
+		else if (blockE.id == target)
 			node.bimgoffset += 4;
 	}
 	else if (blockID == 64 || blockID == 71)  // wooden door, iron door
 	{
-		GETNEIGHBORUD(blockIDU, blockDataU, BlockIdx(0,0,1))
-		GETNEIGHBORUD(blockIDD, blockDataD, BlockIdx(0,0,-1))
-		bool isTop = blockIDD == blockID;
-		uint8_t blockDataTop = isTop ? blockData : blockDataU;
-		uint8_t blockDataBottom = isTop ? blockDataD : blockData;
+                Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
+                Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
+		bool isTop = blockD.id == blockID;
+		uint8_t blockDataTop = isTop ? blockData : blockU.data;
+		uint8_t blockDataBottom = isTop ? blockD.data : blockData;
 		int dir = blockDataBottom % 4;
 		if (blockDataBottom & 0x4)
 			dir = (dir + ((blockDataTop & 0x1) ? 3 : 1)) % 4;
@@ -404,18 +427,18 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	//          probably use them, too
 	if (rj.blockimages.isOpaque(node.bimgoffset))
 	{
-		GETNEIGHBOR(blockIDS, blockDataS, BlockIdx(1,0,0))
-		GETNEIGHBOR(blockIDE, blockDataE, BlockIdx(0,-1,0))
-		GETNEIGHBOR(blockIDD, blockDataD, BlockIdx(0,0,-1))
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
 
 		//!!!!!! neighboring blocks that aren't full height like snow and half-steps should probably produce
 		//        the drop-off effect, too
 		//!!!!!!! not to mention fully-transparent block images
-		if (blockIDS == 0)  // air
+		if (blockS.id == 0)  // air
 			node.darkenSU = true;
-		if (blockIDE == 0)  // air
+		if (blockE.id == 0)  // air
 			node.darkenEU = true;
-		if (blockIDD == 0)  // air
+		if (blockD.id == 0)  // air
 		{
 			node.darkenND = true;
 			node.darkenWD = true;
@@ -583,14 +606,16 @@ bool renderTile(const TileIdx& ti, RenderJob& rj, RGBAImage& tile)
 			if (ci != lastci)
 				chunkdata = rj.chunkcache->getData(ci);
 
-			// get block type and data
+			// get block type
 			uint16_t blockID = chunkdata->id(pcit.current);
-			uint8_t blockData = chunkdata->data(pcit.current);
-			int initialoffset = blockimages.getOffset(blockID, blockData);  // we might use a different one after checkSpecial
-			
+
 			// if this is air, move on (we *always* consider air to be transparent; it has no block image)
 			if (blockID == 0)
 				continue;
+				
+			// get the block data
+			uint8_t blockData = chunkdata->data(pcit.current);
+			int initialoffset = blockimages.getOffset(blockID, blockData);  // we might use a different one after checkSpecial
 
 			// create a node for this block
 			SceneGraphNode node(tbit.current.x + xoff, tbit.current.y + yoff, pcit.current, initialoffset);
@@ -639,7 +664,7 @@ bool renderTile(const TileIdx& ti, RenderJob& rj, RGBAImage& tile)
 		drawSubgraph(sg, i, tile, blockimages);
 
 	// save the image to disk
-	if (!tile.writePNG(tilefile))
+	if (!tile.writeImage(tilefile))
 		cerr << "failed to write " << tilefile << endl;
 	return true;
 }
@@ -682,7 +707,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile)
 	if (usedcount < 4 && !rj.fullrender)
 	{
 		// if it doesn't read, no big deal (it may not exist anyway)
-		if (!tile.readPNG(tilefile) || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
+		if (!tile.readPNG(tilefile + ".png") || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
 			tile.create(rj.mp.tileSize(), rj.mp.tileSize());
 	}
 	else
@@ -700,7 +725,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile)
 		reduceHalf(tile, ImageRect(halfsize, halfsize, halfsize, halfsize), zlevel.tiles[3]);
 
 	// save to disk
-	if (!tile.writePNG(tilefile))
+	if (!tile.writeImage(tilefile))
 		cerr << "failed to write " << tilefile << endl;
 	return true;
 }
@@ -764,7 +789,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile, cons
 	if (usedcount < 4 && !rj.fullrender)
 	{
 		// if it doesn't read, no big deal (it may not exist anyway)
-		if (!tile.readPNG(tilefile) || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
+		if (!tile.readPNG(tilefile + ".png") || tile.w != rj.mp.tileSize() || tile.h != rj.mp.tileSize())
 			tile.create(rj.mp.tileSize(), rj.mp.tileSize());
 	}
 	else
@@ -782,7 +807,7 @@ bool renderZoomTile(const ZoomTileIdx& zti, RenderJob& rj, RGBAImage& tile, cons
 		reduceHalf(tile, ImageRect(halfsize, halfsize, halfsize, halfsize), *tile3);
 
 	// save to disk
-	if (!tile.writePNG(tilefile))
+	if (!tile.writeImage(tilefile))
 		cerr << "failed to write " << tilefile << endl;
 	return true;
 }
@@ -825,7 +850,7 @@ void testTileIterator()
 							cout << "[" << bbox.topLeft.x << "," << bbox.topLeft.y << "] to [" << bbox.bottomRight.x << "," << bbox.bottomRight.y << "]" << endl;
 							return;
 						}
-						if (it.pos != blocks.size())
+						if ((unsigned) it.pos != blocks.size())
 						{
 							cout << "block position seems to have advanced too fast!" << endl;
 							return;

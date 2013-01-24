@@ -161,7 +161,7 @@ struct RegionCache : private nocopy
 	//  into its proper place in the cache, and the previous tenant there moves here
 	RegionCacheEntry readbuf;
 	RegionCache(ChunkTable& ctable, RegionTable& rtable, const std::string& inpath, bool fullr, RegionCacheStats& st)
-		: chunktable(ctable), regiontable(rtable), inputpath(inpath), fullrender(fullr), stats(st)
+		: chunktable(ctable), regiontable(rtable), stats(st), inputpath(inpath), fullrender(fullr)
 	{
 	}
 

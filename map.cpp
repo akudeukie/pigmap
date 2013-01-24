@@ -126,11 +126,6 @@ bool BlockIdx::occludes(const BlockIdx& bi) const
 	return imgxdiff <= 2 && imgydiff <= 2;
 }
 
-ChunkIdx BlockIdx::getChunkIdx() const
-{
-	return ChunkIdx(floordiv16(x), floordiv16(z));
-}
-
 BlockIdx BlockIdx::topBlock(const Pixel& p, const MapParams& mp)
 {
 	// x = 2Bbx + 2Bbz
@@ -267,7 +262,7 @@ string TileIdx::toFilePath(const MapParams& mp) const
 	if (!valid(mp))
 		return string();
 	if (mp.baseZoom == 0)
-		return "base.png";
+		return "base";
 	int64_t offset = (1 << (mp.baseZoom-1));
 	int64_t gx = x + offset, gy = y + offset;
 	string s;
@@ -278,7 +273,6 @@ string TileIdx::toFilePath(const MapParams& mp) const
 		s += tostring(xbit + 2*ybit) + "/";
 	}
 	s.resize(s.size() - 1);  // drop final slash
-	s += ".png";
 	return s;
 }
 
@@ -310,7 +304,7 @@ string ZoomTileIdx::toFilePath() const
 	if (!valid())
 		return string();
 	if (zoom == 0)
-		return "base.png";
+		return "base";
 	string s;
 	for (int z = zoom-1; z >= 0; z--)
 	{
@@ -319,7 +313,6 @@ string ZoomTileIdx::toFilePath() const
 		s += tostring(xbit + 2*ybit) + "/";
 	}
 	s.resize(s.size() - 1);  // drop final slash
-	s += ".png";
 	return s;
 }
 
