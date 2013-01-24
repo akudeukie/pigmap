@@ -112,6 +112,12 @@ bool BlockImages::create(int B, const string& imgpath)
 		cerr << blocktexturesfile << " is missing" << endl;
 		return false;
 	}
+	else if(descriptorlist.fail())
+	{
+		descriptorlist.close();
+		cerr << blockdescriptorfile << " is missing" << endl;
+		return false;
+	}
 	else if (!construct(B, texturelist, descriptorlist, imgpath))
 	{
 		cerr << "image path is missing at least one of the required files" << endl;
