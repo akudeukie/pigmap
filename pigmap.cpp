@@ -44,7 +44,6 @@
 #include <pthread.h>
 #include <unistd.h>
 
-#include "version.h"
 #include "blockimages.h"
 #include "rgba.h"
 #include "map.h"
@@ -1081,7 +1080,7 @@ int main(int argc, char **argv)
 				testworldsize = atoi(optarg);
 				break;
 			case 'h':
-				cerr << "PigMap " << PIGMAP_VERSION << endl
+				cerr << "PigMap " << endl
                                      << "-i <path> minecraft world input path. This should be the base of the world" << endl
                                      << "-o <path> output path. This is the diretory to put the html file in" << endl
                                      << "-g <path> image path. This is where to find the minecraft terrain.png and also to output the cached blocks." << endl

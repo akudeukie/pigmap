@@ -233,7 +233,7 @@ inline bool connectPane(RenderJob& rj, const Block& block)
 // fromside: 0 - NS, 1 - WE
 inline bool connectRedstone(RenderJob& rj, const Block& block, uint8_t fromside)
 {
-    return cfid == 28 || cfid == 55 || cfid == 75 || cfid == 75 || cfid ==146 || cfid ==149 || cfid == 150 || cfid == 152 || ((cfid == 93 || cfid == 94) && block.data % 2 == fromside);
+    return block.id == 28 || block.id == 55 || block.id == 75 || block.id == 75 || block.id ==146 || block.id ==149 || block.id == 150 || block.id == 152 || ((block.id == 93 || block.id == 94) && block.data % 2 == fromside);
 }
 
 inline bool connectTripWire(RenderJob& rj, const Block& block)
@@ -261,7 +261,6 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 {
 	const BlockIdx& bi = node.bi;
 	
-<<<<<<< HEAD
 	//if (node.bimgoffset == 8)  // solid water
 	if ((blockID == 8 || blockID == 9) && (blockData == 0 || blockData > 7))  // solid water
 	{
@@ -361,10 +360,10 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
                 Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
                 Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = ((blockIDN == blockID || connectPane(rj, blockN)) ? 0x1 : 0) |
-		            ((blockIDS == blockID || connectPane(rj, blockS)) ? 0x2 : 0) |
-		            ((blockIDE == blockID || connectPane(rj, blockE)) ? 0x4 : 0) |
-		            ((blockIDW == blockID || connectPane(rj, blockW)) ? 0x8 : 0);
+		int bits = ((blockN.id == blockID || connectPane(rj, blockN)) ? 0x1 : 0) |
+		            ((blockS.id == blockID || connectPane(rj, blockS)) ? 0x2 : 0) |
+		            ((blockE.id == blockID || connectPane(rj, blockE)) ? 0x4 : 0) |
+		            ((blockW.id == blockID || connectPane(rj, blockW)) ? 0x8 : 0);
 		if (bits != 0 && bits != 15)
 			node.bimgoffset += bits;
 	}

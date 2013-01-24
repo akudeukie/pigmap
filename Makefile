@@ -14,9 +14,9 @@ pigmap : $(objects)
 	g++ $(objects) -o pigmap -l z -l png -l jpeg -l pthread $(CFLAGS)
 
 pigmap.o : pigmap.cpp blockimages.h chunk.h map.h render.h rgba.h tables.h utils.h world.h
-	g++ -c pigmap.cpp $(CFLAGS) -std=c++0x
+	g++ -c pigmap.cpp $(CFLAGS)
 blockimages.o : blockimages.cpp blockimages.h rgba.h utils.h
-	g++ -c blockimages.cpp $(CFLAGS)
+	g++ -c blockimages.cpp $(CFLAGS) -std=c++0x
 chunk.o : chunk.cpp chunk.h map.h region.h tables.h utils.h
 	g++ -c chunk.cpp $(CFLAGS)
 map.o : map.cpp map.h utils.h
