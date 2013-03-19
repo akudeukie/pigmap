@@ -840,7 +840,7 @@ bool validateParamsFull(const string& inputpath, const string& outputpath, const
 	//  insanely large map to see any benefit to having that many...)
 	if (threads < 1 || threads > 64)
 	{
-		cerr << "-h must be in range 1-64" << endl;
+		cerr << "-t must be in range 1-64" << endl;
 		return false;
 	}
 
@@ -924,7 +924,7 @@ bool validateParamsIncremental(const string& inputpath, const string& outputpath
 	//  insanely large map to see any benefit to having that many...)
 	if (threads < 1 || threads > 64)
 	{
-		cerr << "-h must be in range 1-64" << endl;
+		cerr << "-t must be in range 1-64" << endl;
 		return false;
 	}
 
@@ -966,7 +966,7 @@ bool validateParamsTest(const string& inputpath, const string& outputpath, const
 	//  insanely large map to see any benefit to having that many...)
 	if (threads < 1 || threads > 64)
 	{
-		cerr << "-h must be in range 1-64" << endl;
+		cerr << "-t must be in range 1-64" << endl;
 		return false;
 	}
 
@@ -1083,7 +1083,7 @@ int main(int argc, char **argv)
 				cerr << "PigMap " << endl
                                      << "-i <path> minecraft world input path. This should be the base of the world" << endl
                                      << "-o <path> output path. This is the diretory to put the html file in" << endl
-                                     << "-g <path> image path. This is where to find the minecraft terrain.png and also to output the cached blocks." << endl
+                                     << "-g <path> image path. This is where to find the *.list files, minecraft textures and also to output the cached blocks." << endl
                                      << "-c [filename] file containing chunks to render" << endl
                                      << "-r [filename] file containing regions to render" << endl
                                      << "-f [format] rendering output format - png,jpg or both" << endl
@@ -1091,7 +1091,7 @@ int main(int argc, char **argv)
                                      << "-Y <int> maximum Y value" << endl
                                      << "-y <int> minimum Y value" << endl
                                      << "-Z <int> (base zoom)?" << endl
-                                     << "-h <int> threads to use for rendering" << endl
+                                     << "-t <int> threads to use for rendering" << endl
                                      << "-B <int> Block size - size in pixels of each minecraft block (2-16)!" << endl
                                      << "-T <int> Tile Size Division. (2-16)" << endl
                                      << "-Z <int> Map zoom levels (0-30)" << endl
