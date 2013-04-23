@@ -67,8 +67,8 @@ bool BlockImages::create(int B, const string& imgpath)
 
 	// 1.5
 	// Block mapping is specified in a separate list, pointing to textures listed in another file
-	string blocktexturesfile = "blocktextures.list";
-	string blockdescriptorfile = "blockdescriptor.list";
+	string blocktexturesfile = imgpath + "/blocktextures.list";
+	string blockdescriptorfile = imgpath + "/blockdescriptor.list";
 	
 	ifstream texturelist(blocktexturesfile.c_str());
 	ifstream descriptorlist(blockdescriptorfile.c_str());
@@ -2363,7 +2363,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 		{
 			if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[1])) // texture read error
 			{
-				cerr << "[texture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[1] << " is missing or invalid" << endl;
+				cerr << "[blocktexture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[1] << " is missing or invalid (check, if it has an alpha channel!)" << endl;
 				missingtextures = true;
 			}
 			else // process texture
