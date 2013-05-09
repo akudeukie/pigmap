@@ -41,6 +41,14 @@ Use supplied makefile to build with g++.
 Change log (important stuff only):
 
 %LATEST_VERSION%
+-new block up to Minecraft 1.6 13w18c snapshot
+-new textures should be added to image folder:
+    textures/blocks/blockCoal.png
+    textures/blocks/clayHardened.png
+    textures/blocks/hayBlock.png
+    textures/blocks/hayBlock_top.png
+
+1.5
 -fire.png, terrain.png, chest.png (and similar) are no longer required
 -pigmap now works with upcoming Minecraft 1.5 textures
 -folders /item, /textures/blocks from minecraft.jar or your texture pack are

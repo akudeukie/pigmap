@@ -65,6 +65,7 @@ bed_head_end.png
 bed_head_side.png
 bed_head_top.png
 bedrock.png
+blockCoal.png
 blockDiamond.png
 blockEmerald.png
 blockGold.png
@@ -91,6 +92,7 @@ cauldron_inner.png
 cauldron_side.png
 cauldron_top.png
 clay.png
+clayHardened.png
 cloth_0.png
 cloth_1.png
 cloth_10.png
@@ -168,6 +170,8 @@ grass_side.png
 grass_side_overlay.png
 / grass_top.png DARKEN 0.6 0.95 0.3
 gravel.png
+hayBlock.png
+hayBlock_top.png
 hellrock.png
 hellsand.png
 hopper.png

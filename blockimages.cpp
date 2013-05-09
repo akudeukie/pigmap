@@ -1874,6 +1874,19 @@ int BlockImages::setOffsets()
 					setOffsetsForID(blockid, offsetIterator, *this);
 				}
 			}
+			else if(descriptor[1] == "SOLIDDATAPARTIAL")
+			{
+				int datasize = descriptorsize - 4;
+				if(datasize > 0) 
+				{
+					setOffsetsForID(blockid, offsetIterator, *this);
+					for(int i = 0; i < datasize && i < 16; i++, offsetIterator++)
+					{
+						blockOffsets[offsetIdx(blockid, i)] = offsetIterator;
+					}
+					continue;
+				}
+			}
 			else if(descriptor[1] == "SOLIDDATAPARTIALFILL")
 			{
 				int datasize = descriptorsize - 5;
@@ -2591,6 +2604,25 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					topCutoff = min(max(topCutoff, 0), 16);
 					bottomCutoff = min(max(bottomCutoff, 0), 16);
 					drawPartialBlockImage(img, getRect(offsetIterator), blockTextures.at((descriptor[4] + ".png")), blockTextures.at((descriptor[5] + ".png")), blockTextures.at((descriptor[6] + ".png")), B, CUTOFFS_16[topCutoff], CUTOFFS_16[bottomCutoff], 0, 0, false);
+				}
+			}
+			else if(descriptor[1] == "SOLIDDATAPARTIAL")
+			{
+				int topCutoff;
+				int bottomCutoff;
+				int datasize = descriptorsize - 4;
+				if(fromstring(descriptor[2], topCutoff) && fromstring(descriptor[3], bottomCutoff) && datasize > 0) 
+				{
+					topCutoff = min(max(topCutoff, 0), 16);
+					bottomCutoff = min(max(bottomCutoff, 0), 16);
+					
+					RGBAImage facetexture;
+					for(int i = 0; i < datasize; i++, offsetIterator++)
+					{
+						facetexture = blockTextures.at((descriptor[i+4] + ".png"));
+						drawPartialBlockImage(img, getRect(offsetIterator), facetexture, facetexture, facetexture, B, CUTOFFS_16[topCutoff], CUTOFFS_16[bottomCutoff], 0, 0, false);
+					}
+					continue;
 				}
 			}
 			else if(descriptor[1] == "SOLIDDATAPARTIALFILL")
