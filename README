@@ -42,9 +42,11 @@ Change log (important stuff only):
 
 %LATEST_VERSION%
 -new block up to Minecraft 1.6 13w18c snapshot
--new textures should be added to image folder:
+-new textures should be added to image folder (or updated):
     textures/blocks/blockCoal.png
+    textures/blocks/blockLapis.png
     textures/blocks/clayHardened.png
+    textures/blocks/clayHardenedStained_[0-15].png
     textures/blocks/hayBlock.png
     textures/blocks/hayBlock_top.png
 

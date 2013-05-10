@@ -206,8 +206,9 @@
 157 RAILPOWERED activatorRail activatorRail_powered #activator rail
 158 SOLIDORIENTED 2 3 4 5 dropper_front furnace_side furnace_top #dropper
 # 1.6
-##159-169 unused
+159 SOLIDDATA clayHardenedStained_0 clayHardenedStained_1 clayHardenedStained_2 clayHardenedStained_3 clayHardenedStained_4 clayHardenedStained_5 clayHardenedStained_6 clayHardenedStained_7 clayHardenedStained_8 clayHardenedStained_9 clayHardenedStained_10 clayHardenedStained_11 clayHardenedStained_12 clayHardenedStained_13 clayHardenedStained_14 clayHardenedStained_15 #stained hardened clay
+##169-169 unused
 170 SOLIDDATATRUNKROTATED S 1 hayBlock_top hayBlock 1 hayBlock_top hayBlock 1 hayBlock_top hayBlock 1 hayBlock_top hayBlock #hay block
-171 SOLIDDATAPARTIAL 14 0 cloth_0 cloth_1 cloth_2 cloth_3 cloth_4 cloth_5 cloth_6 cloth_7 cloth_8 cloth_9 cloth_10 cloth_11 cloth_12 cloth_13 cloth_14 cloth_15 #carpet
+171 SOLIDDATAPARTIAL 15 0 cloth_0 cloth_1 cloth_2 cloth_3 cloth_4 cloth_5 cloth_6 cloth_7 cloth_8 cloth_9 cloth_10 cloth_11 cloth_12 cloth_13 cloth_14 cloth_15 #carpet
 172 SOLID clayHardened
 173 SOLID blockCoal
