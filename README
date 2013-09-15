@@ -39,8 +39,15 @@ Use supplied makefile to build with g++.
 ---------------------------------------------------------------------------------------------------
 
 Change log (important stuff only):
-
 %LATEST_VERSION%
+-endportal.png is no longer included in root directory
+-texture names are aligned with 1.6+/1.7 textures; default textures can be downloaded at:
+https://www.dropbox.com/s/dmr9z7o5prgylf8/pigmap_mc_1_7_textures.rar
+-new blocks up to Minecraft 1.7 (packed ice, tall flowers, new flowers)
+-new block type (used for tall flowers)
+-new texture directive (to combine multiple textures in one, to be used for generating tiles)
+
+1.6
 -new block up to Minecraft 1.6 13w18c snapshot
 -new textures should be added to image folder (or updated):
     textures/blocks/blockCoal.png

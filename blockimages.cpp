@@ -1988,6 +1988,20 @@ int BlockImages::setOffsets()
 				}
 				
 			}
+			else if(descriptor[1] == "ITEMDATATALLORIENTED")
+			{
+				if(descriptorsize % 2 == 0 && descriptorsize > 2)
+				{
+					int datasize = descriptorsize - 2;
+					setOffsetsForID(blockid, offsetIterator, *this); // dummy
+					for(int i = 0; i < datasize/2 && i < 8; i++, offsetIterator++)
+					{
+						blockOffsets[offsetIdx(blockid, i)] = offsetIterator++; // bottom-base block
+					}
+					continue;
+				}
+				
+			}
 			else if(descriptor[1] == "STAIR")
 			{
 				if(descriptorsize > 2)
@@ -2146,10 +2160,25 @@ int BlockImages::setOffsets()
 			}
 			else if(descriptor[1] == "REPEATER")
 			{
-				blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 4)] = blockOffsets[offsetIdx(blockid, 8)] = blockOffsets[offsetIdx(blockid, 12)] = offsetIterator;
-				blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 5)] = blockOffsets[offsetIdx(blockid, 9)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator;
-				blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 6)] = blockOffsets[offsetIdx(blockid, 10)] = blockOffsets[offsetIdx(blockid, 14)] = ++offsetIterator;
-				blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 7)] = blockOffsets[offsetIdx(blockid, 11)] = blockOffsets[offsetIdx(blockid, 15)] = ++offsetIterator;
+				if(descriptorsize == 6) // combined state (comparator)
+				{
+					blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 4)] = offsetIterator;
+					blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 5)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 6)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 7)] = ++offsetIterator;
+					
+					blockOffsets[offsetIdx(blockid, 8)] = blockOffsets[offsetIdx(blockid, 12)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 9)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 10)] = blockOffsets[offsetIdx(blockid, 14)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 11)] = blockOffsets[offsetIdx(blockid, 15)] = ++offsetIterator;
+				}
+				else // separate states (repeater)
+				{
+					blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 4)] = blockOffsets[offsetIdx(blockid, 8)] = blockOffsets[offsetIdx(blockid, 12)] = offsetIterator;
+					blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 5)] = blockOffsets[offsetIdx(blockid, 9)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 6)] = blockOffsets[offsetIdx(blockid, 10)] = blockOffsets[offsetIdx(blockid, 14)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 7)] = blockOffsets[offsetIdx(blockid, 11)] = blockOffsets[offsetIdx(blockid, 15)] = ++offsetIterator;
+				}
 			}
 			else if(descriptor[1] == "LEVER")
 			{
@@ -2208,8 +2237,10 @@ int BlockImages::setOffsets()
 			else if(blockid == 140) // flower pot
 			{
 				setOffsetsForID(blockid, offsetIterator, *this);  // flower pot
-				for(int i = 0; i < descriptorsize - 4; i++)
-					blockOffsets[offsetIdx(blockid, i)] = ++offsetIterator;
+				/* flower pot item data is contained in tile entity since 1.7(unavailable in rendering process)
+				for(int i = 4; i < descriptorsize; i++)
+					blockOffsets[offsetIdx(blockid, i - 3)] = ++offsetIterator;
+					*/
 			}
 			else if(blockid == 145) // anvil
 			{
@@ -2435,6 +2466,24 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					else if(textureDirectives[i] == "FLIPX")
 					{
 						flipX(iblocktile, ImageRect(0, 0, tileSize, tileSize));
+					}
+					else if(textureDirectives[i] == "OVERLAY") // alpha blit source image onto destination image
+					{
+						// load overlaying texture
+						if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[++i])) // texture read error
+						{
+							cerr << "[texture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[i] << " is missing or invalid" << endl;
+							missingtextures = true;
+						}
+						else
+						{
+							RGBAImage overlaytile;
+							overlaytile.create(tileSize, tileSize);
+							textureSize = min(iblockimage.w, iblockimage.h); // assume block textures are square, and choose smallest of the sides if they aren't
+							resize(iblockimage, ImageRect(0, 0, textureSize, textureSize), overlaytile, ImageRect(0, 0, tileSize, tileSize));
+							
+							alphablit(overlaytile, ImageRect(0, 0, tileSize, tileSize), iblocktile, 0, 0);
+						}
 					}
 					else if(textureDirectives[i] == "CHEST")
 					{
@@ -2720,6 +2769,25 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					}
 					continue;
 				}
+			}
+			else if(descriptor[1] == "ITEMDATATALLORIENTED")
+			{
+				if(descriptorsize % 2 == 0 && descriptorsize > 2)
+				{
+					int datasize = descriptorsize - 2;
+					RGBAImage topTile;
+					RGBAImage bottomTile;
+					for(int i = 0; i < datasize/2 && i < 8; i++, offsetIterator++)
+					{
+						topTile = blockTextures[descriptor[i * 2 + 2] + ".png"];
+						bottomTile = blockTextures[descriptor[i * 2 + 3] + ".png"];
+						
+						drawItemBlockImage(img, getRect(offsetIterator++), bottomTile, B); // bottom tile
+						drawItemBlockImage(img, getRect(offsetIterator), topTile, B); // top tile
+					}
+					continue;
+				}
+				
 			}
 			else if(descriptor[1] == "MULTIITEMDATA")
 			{
@@ -3059,6 +3127,16 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 0, B);  // repeater on E
 				drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 3, B);  // repeater on S
 				drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 2, B);  // repeater on W
+				
+				if(descriptorsize == 6) // combined state (comparator) - draw extra tiles
+				{
+					baseTile = blockTextures.at(descriptor[4] + ".png");
+					torchTile = blockTextures.at(descriptor[5] + ".png");
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 1, B);  // repeater on N
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 0, B);  // repeater on E
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 3, B);  // repeater on S
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 2, B);  // repeater on W
+				}
 			}
 			else if(descriptor[1] == "LEVER")
 			{
@@ -3171,6 +3249,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				RGBAImage& fillerTile = blockTextures.at((descriptor[3] + ".png"));
 				int contenttype = 0;
 				drawFlowerPot(img, getRect(offsetIterator), flowerpotTile, fillerTile, false, fillerTile, contenttype, B); // flower pot [empty]
+				/*
 				for(int i = 4; i < descriptorsize; i++)
 				{
 					if(i == 12)
@@ -3179,6 +3258,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 						contenttype = 0;
 					drawFlowerPot(img, getRect(++offsetIterator), flowerpotTile, fillerTile, true, blockTextures.at((descriptor[i] + ".png")), contenttype, B);
 				}
+				*/
 			}
 			else if(blockid == 145) // anvil
 			{
