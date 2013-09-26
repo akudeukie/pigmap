@@ -55,7 +55,7 @@
 ##9 - skip, it's water too
 10 SPECIAL lava_still
 ##11 - skip, it's lava too
-12 SOLID sand
+12 SOLIDDATA sand red_sand
 13 SOLID gravel
 14 SOLID gold_ore
 15 SOLID iron_ore
