@@ -40,6 +40,7 @@ Use supplied makefile to build with g++.
 
 Change log (important stuff only):
 %LATEST_VERSION%
+-added support for RGB PNG images (with no alpha channel)
 -endportal.png is no longer included in root directory
 -texture names are aligned with 1.6+/1.7 textures; default textures can be downloaded at:
 https://www.dropbox.com/s/dmr9z7o5prgylf8/pigmap_mc_1_7_textures.rar
