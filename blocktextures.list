@@ -8,9 +8,9 @@
 # Directories should be relative to the image path, or path where renderer is being executed from.
 #
 # You can prefix texture with a / (slash), to apply different filters to the texture.
-# !!!NOTE!!! Filters will be applied only to the copies of textures stored in memory. Original textures will be untouched.
-# If you do so, you can use a couple of directive after a texture name. 
-# !!!NOTE!!! Directive are executed in order of appearance. EXPAND, CHEST and LCHEST create new textures. If you want to apply other filters,
+# !!!NOTE!!! Filters will be applied only to the copies of textures stored in memory. Original textures will not be modified.
+# If you do so, you can use a couple of directives after a texture name. 
+# !!!NOTE!!! Directives are executed in order of appearance. EXPAND, CHEST and LCHEST create new textures. If you want to apply other filters,
 #    they (filters) should go -AFTER- EXPAND directive, and -BEFORE- CHEST and LCHEST directives.
 # !!!NOTE!!! CHEST and LCHEST are similar, but should not be used together.
 # Here is a list of available directives and their syntax:
@@ -172,7 +172,39 @@ furnace_front_on.png
 furnace_side.png
 furnace_top.png
 glass.png
+glass_black.png
+glass_blue.png
+glass_brown.png
+glass_cyan.png
+glass_gray.png
+glass_green.png
+glass_light_blue.png
+glass_lime.png
+glass_magenta.png
+glass_orange.png
 glass_pane_top.png
+glass_pane_top_black.png
+glass_pane_top_blue.png
+glass_pane_top_brown.png
+glass_pane_top_cyan.png
+glass_pane_top_gray.png
+glass_pane_top_green.png
+glass_pane_top_light_blue.png
+glass_pane_top_lime.png
+glass_pane_top_magenta.png
+glass_pane_top_orange.png
+glass_pane_top_pink.png
+glass_pane_top_purple.png
+glass_pane_top_red.png
+glass_pane_top_silver.png
+glass_pane_top_white.png
+glass_pane_top_yellow.png
+glass_pink.png
+glass_purple.png
+glass_red.png
+glass_silver.png
+glass_white.png
+glass_yellow.png
 glowstone.png
 gold_block.png
 gold_ore.png

@@ -4,8 +4,8 @@ essentially the same thing, just faster and with fewer fancy options.  Features 
 
 -isometric projection; level of detail on max zoom is user-settable
 -Google Maps tile output
--custom tilesets (supply your own terrain.png)
--ability to manually edit the isometric block images generated from terrain.png,
+-custom tilesets (supply your own texture pack)
+-ability to manually edit the isometric block images generated from texture pack,
   for further beautification
 -incremental map updates, but you must supply your own list of modified chunks (most
   likely via rsync or something similar)
@@ -43,20 +43,13 @@ Change log (important stuff only):
 -added support for RGB PNG images (with no alpha channel)
 -endportal.png is no longer included in root directory
 -texture names are aligned with 1.6+/1.7 textures; default textures can be downloaded at:
-https://www.dropbox.com/s/dmr9z7o5prgylf8/pigmap_mc_1_7_textures.rar
--new blocks up to Minecraft 1.7 (packed ice, tall flowers, new flowers)
+    https://www.dropbox.com/s/dmr9z7o5prgylf8/pigmap_mc_1_7_textures.rar
+-new blocks up to Minecraft 1.7 (packed ice, tall flowers, new flowers, stained glass, stained glass pane)
 -new block type (used for tall flowers)
 -new texture directive (to combine multiple textures in one, to be used for generating tiles)
 
 1.6
--new block up to Minecraft 1.6 13w18c snapshot
--new textures should be added to image folder (or updated):
-    textures/blocks/blockCoal.png
-    textures/blocks/blockLapis.png
-    textures/blocks/clayHardened.png
-    textures/blocks/clayHardenedStained_[0-15].png
-    textures/blocks/hayBlock.png
-    textures/blocks/hayBlock_top.png
+-new blocks up to Minecraft 1.6
 
 1.5
 -fire.png, terrain.png, chest.png (and similar) are no longer required
@@ -205,8 +198,7 @@ are stored in blocks-B.png.  (As more blocks are added to the game, the version 
 The selection of block images works thusly:
 
 -If blocks-B.png does not exist, then the tileset you provide will be used to create it.
--If blocks-B.png exists but has an old version, your tileset will be used to fill in any missing
-  (i.e. new) blocks, but the existing portions of blocks-B.png will be preserved.
+-If blocks-B.png exists but has an old version, your tileset will be used to create new replacement. Old blocks-B.png data will be lost.
 -If blocks-B.png exists and is up-to-date, its block images will be used.
 
 This means that pigmap will need your tileset the first time it runs, so it can generate blocks-B.png;
@@ -214,7 +206,7 @@ subsequent runs will use the existing blocks-B.png, which can be manually edited
 pretty, or for special effects, etc.
 
 The generate blocks-B.pngi, extract the item/ and textures/ folder of your minecraft.jar into the folder you have specified.
-All of these must be RGBA png files (not just RGB). So check the alpha channels, if one file is not recognized. From minecraft version 1.5 it is known that the lava.png is missing an alpha channel. You can simply add one by using tools like GIMP.
+All of these must be RGBA/RGB (32BPP/24BPP) png files.
 
 d. [optional] number of threads (-t)
 
@@ -316,33 +308,26 @@ are redrawn.
 
 ---------------------------------------------------------------------------------------------------
 
+Custom blocks:
+
+1. Textures
+blocktextures.list file is used to declare and pre-process textures, before generating blocks-B.png
+tiles. For more info read blocktextures.list;
+
+2. Blocks
+blockdescriptor.list file is used to declare and describe new blocks by their respective IDs.
+It also describes how blocks look and what textures do they use. Textures must be declared in
+blocktextures.list file. For more info read blockdescriptor.list;
+
+Note: Block IDs >= 256 will be not used by renderer.
+
+---------------------------------------------------------------------------------------------------
+
 Special note for those who choose to manually edit blocks-B.png:
 
-When new block types are introduced, their block images are added on to the end of blocks-B.png,
-and the existing contents are preserved, so you don't need to worry about previous modifications
-getting destroyed.  However, sometimes it may be necessary to remove existing block images and
-replace them with new versions; when this happens, the old block image offset will no longer be
-used, and a new block image will be added to the end of the file.
+Block positions in blocks-B.png are dynamic. When new blocks are declared in blockdescriptor.list, 
+old blocks-B.png is overwritten by newly generated. Don't forget to make backups.
 
-Example: prior to pigmap 0.6, the furnace block images were located at offsets 68, 69, and 149-152.
-Starting with 0.6, they are instead located at 183-188.  (This is because the furnace graphics
-were changed in Minecraft Beta 1.2.)  So if you modified the furnace block images while using a
-pre-0.6 version of pigmap, your modified images can still be found at their old locations in your
-blocks-B.png, but they must be copied to the new locations.
-
-Complete list of block image moves:
-
---- pigmap 1.2 ---
-gravel: 21->483
-chests: 54->484, 177->485, 297->486, [173-176]->[487,490], [298-301]->[491-494]
-
---- pigmap 1.0 ---
-beds: 232->281, 233->282, 234->283, 235->284, 236->285, 237->286, 238->287, 239->288
-cake: 228->289
-
---- pigmap 0.6 ---
-furnaces: 68->183, 69->186, 149->184, 150->185, 151->187, 152->188
-fire: 48->189
-buttons: 123->190, 124->191, 125->192, 126->193
-levers: 104->194, 105->195, 106->196, 107->197, 108->198, 109->199
-ascending tracks: 88->200, 89->201, 90->202, 91->203
+Block images are generated in order of appearance in blockdescriptor.list. You can use that to your advantage
+by declaring new blocks at the end of the list. Then you can easily combine old and new ones with image editor,
+as new blocks-B.png will look similar to the old one with new tiles added at the end.

@@ -227,7 +227,7 @@ inline bool connectCobblestoneWallUp(RenderJob& rj, const Block& block)
 
 inline bool connectPane(RenderJob& rj, const Block& block)
 {
-    return rj.blockimages.isOpaque(block.id, block.data) && block.id != 130;
+    return block.id == 101 || block.id == 102 || block.id == 160 || (rj.blockimages.isOpaque(block.id, block.data) && block.id != 130);
 }
 
 // fromside: 0 - NS, 1 - WE
@@ -359,17 +359,17 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		else if (blockE.id == blockID)
 			node.bimgoffset += (blockE.data == 2) ? 3 : 4;
 	}
-	else if (blockID == 101 || blockID == 102)  // iron bars, glass pane
+	else if (blockID == 101 || blockID == 102 || blockID == 160)  // iron bars, glass pane, stained glass pane
 	{
 		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
 		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
 		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = ((blockN.id == blockID || connectPane(rj, blockN)) ? 0x1 : 0) |
-		            ((blockS.id == blockID || connectPane(rj, blockS)) ? 0x2 : 0) |
-		            ((blockE.id == blockID || connectPane(rj, blockE)) ? 0x4 : 0) |
-		            ((blockW.id == blockID || connectPane(rj, blockW)) ? 0x8 : 0);
+		int bits = ((connectPane(rj, blockN)) ? 0x1 : 0) |
+		            ((connectPane(rj, blockS)) ? 0x2 : 0) |
+		            ((connectPane(rj, blockE)) ? 0x4 : 0) |
+		            ((connectPane(rj, blockW)) ? 0x8 : 0);
 		if (bits != 0 && bits != 15)
 			node.bimgoffset += bits;
 	}

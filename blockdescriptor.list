@@ -138,7 +138,7 @@
 92 SOLIDPARTIAL 8 0 cake_side cake_side cake_top #cake
 93 REPEATER repeater_off redstone_torch_off #repeater inactive
 94 REPEATER repeater_on redstone_torch_on #repeater active
-##95 locked chest isn't actually in a game
+95 SOLIDDATA glass_white glass_orange glass_magenta glass_light_blue glass_yellow glass_lime glass_pink glass_gray glass_silver glass_cyan glass_purple glass_blue glass_brown glass_green glass_red glass_black #stained glass
 96 TRAPDOOR trapdoor
 97 SOLIDDATA stone cobblestone stonebrick # smooth / cobblestone / stone brick monster egg
 98 SOLIDDATA stonebrick stonebrick_mossy stonebrick_cracked stonebrick_carved # normal / mossy / cracked / chiseled stone bricks
@@ -208,7 +208,8 @@
 158 SOLIDORIENTED 2 3 4 5 dropper_front_horizontal furnace_side furnace_top #dropper
 # 1.6
 159 SOLIDDATA hardened_clay_stained_white hardened_clay_stained_orange hardened_clay_stained_magenta hardened_clay_stained_light_blue hardened_clay_stained_yellow hardened_clay_stained_lime hardened_clay_stained_pink hardened_clay_stained_gray hardened_clay_stained_silver hardened_clay_stained_cyan hardened_clay_stained_purple hardened_clay_stained_blue hardened_clay_stained_brown hardened_clay_stained_green hardened_clay_stained_red hardened_clay_stained_black #stained hardened clay
-##169-169 unused
+160 PANEDATA glass_white glass_orange glass_magenta glass_light_blue glass_yellow glass_lime glass_pink glass_gray glass_silver glass_cyan glass_purple glass_blue glass_brown glass_green glass_red glass_black #stained glass pane
+##159-169 unused
 170 SOLIDDATATRUNKROTATED S 1 hay_block_top hay_block_side 1 / / 1 / / 1 / / #hay block
 171 SOLIDDATAPARTIAL 15 0 wool_colored_white wool_colored_orange wool_colored_magenta wool_colored_light_blue wool_colored_yellow wool_colored_lime wool_colored_pink wool_colored_gray wool_colored_silver wool_colored_cyan wool_colored_purple wool_colored_blue wool_colored_brown wool_colored_green wool_colored_red wool_colored_black #carpet
 172 SOLID hardened_clay
