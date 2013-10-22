@@ -1836,8 +1836,8 @@ int BlockImages::setOffsets()
 				if((descriptorsize - 3) % 3 == 0 && descriptorsize > 3)
 				{
 					int orientationFlag;
-					int groupSize = (descriptorsize - 3)/3;
 					bool dataOrdered = (descriptor[2] == "O") ? true : false;
+						
 					setOffsetsForID(blockid, offsetIterator, *this);
 					for(int i = 0, j = 0; i < descriptorsize - 3 && j < 16; i += 3, j++, offsetIterator++)
 					{
@@ -1852,8 +1852,9 @@ int BlockImages::setOffsets()
 						}
 						else if(orientationFlag == 1)
 						{
-							blockOffsets[offsetIdx(blockid, j + groupSize)] = ++offsetIterator; // trunk EW
-							blockOffsets[offsetIdx(blockid, j + 2*groupSize)] = ++offsetIterator; // trunk NS
+							blockOffsets[offsetIdx(blockid, j + 4)] = ++offsetIterator; // trunk EW
+							blockOffsets[offsetIdx(blockid, j + 8)] = ++offsetIterator; // trunk NS
+							blockOffsets[offsetIdx(blockid, j + 12)] = ++offsetIterator; // trunk not oriented
 						}
 					}
 					continue;
@@ -1976,12 +1977,15 @@ int BlockImages::setOffsets()
 			}
 			else if(descriptor[1] == "ITEMDATAFILL")
 			{
-				if(descriptorsize > 2)
+				if(descriptorsize > 3)
 				{
-					int datasize = descriptorsize - 2;
+					int datasize = descriptorsize - 3;
+					int groupsize;
+					if(!fromstring(descriptor[2], groupsize))
+						groupsize = 4;
 					for(int i = 0; i < datasize; i++, offsetIterator++)
 					{
-						for(int di = i; di < 16; di += datasize)
+						for(int di = i; di < 16; di += groupsize)
 							blockOffsets[offsetIdx(blockid, di)] = offsetIterator;
 					}
 					continue;
@@ -2407,7 +2411,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 		{
 			if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[1])) // texture read error
 			{
-				cerr << "[blocktexture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[1] << " is missing or invalid (check, if it has an alpha channel!)" << endl;
+				cerr << "[blocktextures.list] @" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[1] << " is missing or invalid (not 24BPP/32BPP PNG image)" << endl;
 				missingtextures = true;
 			}
 			else // process texture
@@ -2472,7 +2476,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 						// load overlaying texture
 						if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[++i])) // texture read error
 						{
-							cerr << "[texture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[i] << " is missing or invalid" << endl;
+							cerr << "[blocktextures.list] @" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[i] << " is missing or invalid (not 24BPP/32BPP PNG image)" << endl;
 							missingtextures = true;
 						}
 						else
@@ -2501,7 +2505,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 		{
 			if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[0])) // texture read error
 			{
-				cerr << "[texture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[0] << " is missing or invalid" << endl;
+				cerr << "[blocktextures.list] @" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[0] << " is missing or invalid (not 24BPP/32BPP PNG image)" << endl;
 				missingtextures = true;
 			}
 			else
@@ -2602,6 +2606,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				if((descriptorsize - 3) % 3 == 0 && descriptorsize > 3)
 				{
 					int orientationFlag;
+					bool dataOrdered = (descriptor[2] == "O") ? true : false;
 					
 					RGBAImage trunkTop;
 					RGBAImage trunkSide;
@@ -2617,6 +2622,8 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 						{
 							drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(trunkTop, 0, false), blockTile(trunkSide, 3, false), blockTile(trunkSide, 0, false), B);  // trunk EW
 							drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(trunkSide, 1, false), blockTile(trunkTop, 0, false), blockTile(trunkSide, 1, false), B);  // trunk NS
+							if(!dataOrdered)
+								drawBlockImage(img, getRect(++offsetIterator), trunkSide, trunkSide, trunkSide, B);  // trunk not oriented
 						}
 					}
 					continue;
@@ -2741,11 +2748,22 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					continue;
 				}
 			}
-			else if(descriptor[1] == "ITEMDATA" || descriptor[1] == "ITEMDATAFILL")
+			else if(descriptor[1] == "ITEMDATA")
 			{
 				if(descriptorsize > 2)
 				{
 					for(int i = 2; i < descriptorsize; i++, offsetIterator++)
+					{
+						drawItemBlockImage(img, getRect(offsetIterator), blockTextures.at((descriptor[i] + ".png")), B);
+					}
+					continue;
+				}
+			}
+			else if(descriptor[1] == "ITEMDATAFILL")
+			{
+				if(descriptorsize > 3)
+				{
+					for(int i = 3; i < descriptorsize; i++, offsetIterator++)
 					{
 						drawItemBlockImage(img, getRect(offsetIterator), blockTextures.at((descriptor[i] + ".png")), B);
 					}

@@ -7,7 +7,7 @@
 # 3 SOLIDDATA (list all textures in order of data bits; like wooden planks, wool, wooden double slabs)
 # 4 SOLIDDATAFILL (like SOLIDDATA, but "tiles" existing data over remaining bits(if any); like leaves)
 # 5 SOLIDDATATRUNK (specify pairs of textures for top and sides for each data bit; like sandstone, double slabs)
-# 6 SOLIDDATATRUNKROTATED (specify bit spacing method (S - each orientation spaced based on group name, O - each orientation is stored in order of group appearance), then list of groups with flag (if this data group should be oriented), top texture, side texture; like planks_oak logs)
+# 6 SOLIDDATATRUNKROTATED (specify bit spacing method (S - each orientation is spaced 4 bits, O - each orientation is stored in order of group appearance), then list of groups (up to 4 for "S" method) with flag (if this data group should be oriented), top texture, side texture; like logs)
 # 7 SOLIDOBSTRUCTED (solid block with missing faces due to obstruction; like ice blocks)
 # 8 SOLIDPARTIAL (list top cutoff, bottom cutoff, then Wface, Sface, Uface; cutoff is specified by number 0 - 16(which is ridiculous; like cake, enchanting table(getto version))
 # 8a SOLIDDATAPARTIAL (list top cutoff, bottom cutoff, then list textures for each data bit; like carpet)
@@ -17,7 +17,7 @@
 # 12 SLABDATATRUNK (specify pairs of textures for top and sides for each data bit; like slabs)
 # 13 ITEMDATA (list textures for each data bit; like saplings, wheat, carrots, potatoes, tall grass, dead brush, reeds)
 # 14 ITEMDATAORIENTED (list N,S,W,E orientation bit indexes, then list of textures per data orientation group; like cocoa pods)
-# 15 ITEMDATAFILL (used for such items as sapling; behaves like ITEMDATA, but if list of textures is not full (up to 16), it will "tile" existing data over remaining bits)
+# 15 ITEMDATAFILL (used for such items as sapling; behaves like ITEMDATA, but tiles provided list over bits, that remain after filling group; group size should be specified before texture list)
 # 16 ITEMDATATALLORIENTED (list pairs of top and bottom textures for each data bit [0-7]; [8-15] are used for orientation; like sunflowers, double tall grass, large fern, etc.)
 # 17 MULTIITEMDATA (list textures for each data bit; like nether wart)
 # 18 STAIR (list textures for: side, top OR side (if all faces has the same texture); stairs in all it's glory)
@@ -48,8 +48,8 @@
 2 SOLID grass_side grass_side grass_top
 3 SOLIDDATATRUNK dirt dirt dirt dirt dirt_podzol_top dirt_podzol_side #dirt / grasless dirt / podzol
 4 SOLID cobblestone #cobblestone
-5 SOLIDDATA planks_oak planks_spruce planks_birch planks_jungle # oak / spruce / birch / jungle planks
-6 ITEMDATAFILL sapling_oak sapling_spruce sapling_birch sapling_jungle #sapling 
+5 SOLIDDATA planks_oak planks_spruce planks_birch planks_jungle planks_acacia planks_big_oak # oak / spruce / birch / jungle / acacia / dark oak planks
+6 ITEMDATAFILL 8 sapling_oak sapling_spruce sapling_birch sapling_jungle sapling_acacia sapling_roofed_oak #sapling 
 7 SOLID bedrock
 8 SPECIAL water_still
 ##9 - skip, it's water too
@@ -170,8 +170,8 @@
 123 SOLID redstone_lamp_off
 124 SOLID redstone_lamp_on
 # 1.3
-125 SOLIDDATA planks_oak planks_spruce planks_birch planks_jungle #wooden double slabs
-126 SLABDATA planks_oak planks_spruce planks_birch planks_jungle #wooden slabs
+125 SOLIDDATA planks_oak planks_spruce planks_birch planks_jungle planks_acacia planks_big_oak #wooden double slabs
+126 SLABDATA planks_oak planks_spruce planks_birch planks_jungle planks_acacia planks_big_oak #wooden slabs
 127 ITEMDATAORIENTED 0 2 3 1 cocoa_stage_0 cocoa_stage_1 cocoa_stage_2 #cocoa pods
 128 STAIR sandstone_normal sandstone_top #sandstone stairs
 129 SOLID emerald_ore
@@ -209,8 +209,12 @@
 # 1.6
 159 SOLIDDATA hardened_clay_stained_white hardened_clay_stained_orange hardened_clay_stained_magenta hardened_clay_stained_light_blue hardened_clay_stained_yellow hardened_clay_stained_lime hardened_clay_stained_pink hardened_clay_stained_gray hardened_clay_stained_silver hardened_clay_stained_cyan hardened_clay_stained_purple hardened_clay_stained_blue hardened_clay_stained_brown hardened_clay_stained_green hardened_clay_stained_red hardened_clay_stained_black #stained hardened clay
 160 PANEDATA glass_white glass_orange glass_magenta glass_light_blue glass_yellow glass_lime glass_pink glass_gray glass_silver glass_cyan glass_purple glass_blue glass_brown glass_green glass_red glass_black #stained glass pane
-##159-169 unused
-170 SOLIDDATATRUNKROTATED S 1 hay_block_top hay_block_side 1 / / 1 / / 1 / / #hay block
+161 SOLIDDATAFILL leaves_acacia leaves_big_oak # acacia / dark oak leaves
+162 SOLIDDATATRUNKROTATED S 1 log_acacia_top log_acacia 1 log_big_oak_top log_big_oak # acacia / dark oak wood
+163 STAIR planks_acacia planks_acacia #acacia wood stairs
+164 STAIR planks_big_oak planks_big_oak #dark oak wood stairs
+##165-169 unused
+170 SOLIDDATATRUNKROTATED S 1 hay_block_top hay_block_side #hay block
 171 SOLIDDATAPARTIAL 15 0 wool_colored_white wool_colored_orange wool_colored_magenta wool_colored_light_blue wool_colored_yellow wool_colored_lime wool_colored_pink wool_colored_gray wool_colored_silver wool_colored_cyan wool_colored_purple wool_colored_blue wool_colored_brown wool_colored_green wool_colored_red wool_colored_black #carpet
 172 SOLID hardened_clay
 173 SOLID coal_block

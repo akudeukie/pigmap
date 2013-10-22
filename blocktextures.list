@@ -247,11 +247,17 @@ ladder.png
 lapis_block.png
 lapis_ore.png
 lava_still.png
+/ leaves_acacia.png DARKEN 0.55 0.9 0.1
+/ leaves_big_oak.png DARKEN 0.3 1.0 0.1
 / leaves_birch.png DARKEN 0.55 0.9 0.1
 / leaves_jungle.png DARKEN 0.35, 1.0, 0.05
 / leaves_oak.png DARKEN 0.3 1.0 0.1
 / leaves_spruce.png DARKEN 0.3 1.0 0.45
 lever.png
+log_acacia.png
+log_acacia_top.png
+log_big_oak.png
+log_big_oak_top.png
 log_birch.png
 log_birch_top.png
 log_jungle.png
@@ -293,6 +299,8 @@ piston_inner.png
 piston_side.png
 piston_top_normal.png
 piston_top_sticky.png
+planks_acacia.png
+planks_big_oak.png
 planks_birch.png
 planks_jungle.png
 planks_oak.png
@@ -350,9 +358,11 @@ sandstone_carved.png
 sandstone_normal.png
 sandstone_smooth.png
 sandstone_top.png
+sapling_acacia.png
 sapling_birch.png
 sapling_jungle.png
 sapling_oak.png
+sapling_roofed_oak.png
 sapling_spruce.png
 snow.png
 soul_sand.png
