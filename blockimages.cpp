@@ -1836,8 +1836,8 @@ int BlockImages::setOffsets()
 				if((descriptorsize - 3) % 3 == 0 && descriptorsize > 3)
 				{
 					int orientationFlag;
-					int groupSize = (descriptorsize - 3)/3;
 					bool dataOrdered = (descriptor[2] == "O") ? true : false;
+						
 					setOffsetsForID(blockid, offsetIterator, *this);
 					for(int i = 0, j = 0; i < descriptorsize - 3 && j < 16; i += 3, j++, offsetIterator++)
 					{
@@ -1852,8 +1852,9 @@ int BlockImages::setOffsets()
 						}
 						else if(orientationFlag == 1)
 						{
-							blockOffsets[offsetIdx(blockid, j + groupSize)] = ++offsetIterator; // trunk EW
-							blockOffsets[offsetIdx(blockid, j + 2*groupSize)] = ++offsetIterator; // trunk NS
+							blockOffsets[offsetIdx(blockid, j + 4)] = ++offsetIterator; // trunk EW
+							blockOffsets[offsetIdx(blockid, j + 8)] = ++offsetIterator; // trunk NS
+							blockOffsets[offsetIdx(blockid, j + 12)] = ++offsetIterator; // trunk not oriented
 						}
 					}
 					continue;
@@ -1976,13 +1977,30 @@ int BlockImages::setOffsets()
 			}
 			else if(descriptor[1] == "ITEMDATAFILL")
 			{
-				if(descriptorsize > 2)
+				if(descriptorsize > 3)
 				{
-					int datasize = descriptorsize - 2;
+					int datasize = descriptorsize - 3;
+					int groupsize;
+					if(!fromstring(descriptor[2], groupsize))
+						groupsize = 4;
 					for(int i = 0; i < datasize; i++, offsetIterator++)
 					{
-						for(int di = i; di < 16; di += datasize)
+						for(int di = i; di < 16; di += groupsize)
 							blockOffsets[offsetIdx(blockid, di)] = offsetIterator;
+					}
+					continue;
+				}
+				
+			}
+			else if(descriptor[1] == "ITEMDATATALLORIENTED")
+			{
+				if(descriptorsize % 2 == 0 && descriptorsize > 2)
+				{
+					int datasize = descriptorsize - 2;
+					setOffsetsForID(blockid, offsetIterator, *this); // dummy
+					for(int i = 0; i < datasize/2 && i < 8; i++, offsetIterator++)
+					{
+						blockOffsets[offsetIdx(blockid, i)] = offsetIterator++; // bottom-base block
 					}
 					continue;
 				}
@@ -2146,10 +2164,25 @@ int BlockImages::setOffsets()
 			}
 			else if(descriptor[1] == "REPEATER")
 			{
-				blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 4)] = blockOffsets[offsetIdx(blockid, 8)] = blockOffsets[offsetIdx(blockid, 12)] = offsetIterator;
-				blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 5)] = blockOffsets[offsetIdx(blockid, 9)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator;
-				blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 6)] = blockOffsets[offsetIdx(blockid, 10)] = blockOffsets[offsetIdx(blockid, 14)] = ++offsetIterator;
-				blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 7)] = blockOffsets[offsetIdx(blockid, 11)] = blockOffsets[offsetIdx(blockid, 15)] = ++offsetIterator;
+				if(descriptorsize == 6) // combined state (comparator)
+				{
+					blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 4)] = offsetIterator;
+					blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 5)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 6)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 7)] = ++offsetIterator;
+					
+					blockOffsets[offsetIdx(blockid, 8)] = blockOffsets[offsetIdx(blockid, 12)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 9)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 10)] = blockOffsets[offsetIdx(blockid, 14)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 11)] = blockOffsets[offsetIdx(blockid, 15)] = ++offsetIterator;
+				}
+				else // separate states (repeater)
+				{
+					blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 4)] = blockOffsets[offsetIdx(blockid, 8)] = blockOffsets[offsetIdx(blockid, 12)] = offsetIterator;
+					blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 5)] = blockOffsets[offsetIdx(blockid, 9)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 6)] = blockOffsets[offsetIdx(blockid, 10)] = blockOffsets[offsetIdx(blockid, 14)] = ++offsetIterator;
+					blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 7)] = blockOffsets[offsetIdx(blockid, 11)] = blockOffsets[offsetIdx(blockid, 15)] = ++offsetIterator;
+				}
 			}
 			else if(descriptor[1] == "LEVER")
 			{
@@ -2208,8 +2241,10 @@ int BlockImages::setOffsets()
 			else if(blockid == 140) // flower pot
 			{
 				setOffsetsForID(blockid, offsetIterator, *this);  // flower pot
-				for(int i = 0; i < descriptorsize - 4; i++)
-					blockOffsets[offsetIdx(blockid, i)] = ++offsetIterator;
+				/* flower pot item data is contained in tile entity since 1.7(unavailable in rendering process)
+				for(int i = 4; i < descriptorsize; i++)
+					blockOffsets[offsetIdx(blockid, i - 3)] = ++offsetIterator;
+					*/
 			}
 			else if(blockid == 145) // anvil
 			{
@@ -2376,7 +2411,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 		{
 			if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[1])) // texture read error
 			{
-				cerr << "[blocktexture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[1] << " is missing or invalid (check, if it has an alpha channel!)" << endl;
+				cerr << "[blocktextures.list] @" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[1] << " is missing or invalid (not 24BPP/32BPP PNG image)" << endl;
 				missingtextures = true;
 			}
 			else // process texture
@@ -2436,6 +2471,24 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					{
 						flipX(iblocktile, ImageRect(0, 0, tileSize, tileSize));
 					}
+					else if(textureDirectives[i] == "OVERLAY") // alpha blit source image onto destination image
+					{
+						// load overlaying texture
+						if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[++i])) // texture read error
+						{
+							cerr << "[blocktextures.list] @" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[i] << " is missing or invalid (not 24BPP/32BPP PNG image)" << endl;
+							missingtextures = true;
+						}
+						else
+						{
+							RGBAImage overlaytile;
+							overlaytile.create(tileSize, tileSize);
+							textureSize = min(iblockimage.w, iblockimage.h); // assume block textures are square, and choose smallest of the sides if they aren't
+							resize(iblockimage, ImageRect(0, 0, textureSize, textureSize), overlaytile, ImageRect(0, 0, tileSize, tileSize));
+							
+							alphablit(overlaytile, ImageRect(0, 0, tileSize, tileSize), iblocktile, 0, 0);
+						}
+					}
 					else if(textureDirectives[i] == "CHEST")
 					{
 						textureiterator += generateChestTiles(blockTextures, iblockimage, texturename, B);
@@ -2452,7 +2505,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 		{
 			if(!iblockimage.readPNG(blocktexturespath + "/" + textureDirectives[0])) // texture read error
 			{
-				cerr << "[texture.list]" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[0] << " is missing or invalid" << endl;
+				cerr << "[blocktextures.list] @" << textureiterator + 1 << " - " << blocktexturespath << "/" << textureDirectives[0] << " is missing or invalid (not 24BPP/32BPP PNG image)" << endl;
 				missingtextures = true;
 			}
 			else
@@ -2553,6 +2606,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				if((descriptorsize - 3) % 3 == 0 && descriptorsize > 3)
 				{
 					int orientationFlag;
+					bool dataOrdered = (descriptor[2] == "O") ? true : false;
 					
 					RGBAImage trunkTop;
 					RGBAImage trunkSide;
@@ -2568,6 +2622,8 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 						{
 							drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(trunkTop, 0, false), blockTile(trunkSide, 3, false), blockTile(trunkSide, 0, false), B);  // trunk EW
 							drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(trunkSide, 1, false), blockTile(trunkTop, 0, false), blockTile(trunkSide, 1, false), B);  // trunk NS
+							if(!dataOrdered)
+								drawBlockImage(img, getRect(++offsetIterator), trunkSide, trunkSide, trunkSide, B);  // trunk not oriented
 						}
 					}
 					continue;
@@ -2692,11 +2748,22 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					continue;
 				}
 			}
-			else if(descriptor[1] == "ITEMDATA" || descriptor[1] == "ITEMDATAFILL")
+			else if(descriptor[1] == "ITEMDATA")
 			{
 				if(descriptorsize > 2)
 				{
 					for(int i = 2; i < descriptorsize; i++, offsetIterator++)
+					{
+						drawItemBlockImage(img, getRect(offsetIterator), blockTextures.at((descriptor[i] + ".png")), B);
+					}
+					continue;
+				}
+			}
+			else if(descriptor[1] == "ITEMDATAFILL")
+			{
+				if(descriptorsize > 3)
+				{
+					for(int i = 3; i < descriptorsize; i++, offsetIterator++)
 					{
 						drawItemBlockImage(img, getRect(offsetIterator), blockTextures.at((descriptor[i] + ".png")), B);
 					}
@@ -2720,6 +2787,25 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					}
 					continue;
 				}
+			}
+			else if(descriptor[1] == "ITEMDATATALLORIENTED")
+			{
+				if(descriptorsize % 2 == 0 && descriptorsize > 2)
+				{
+					int datasize = descriptorsize - 2;
+					RGBAImage topTile;
+					RGBAImage bottomTile;
+					for(int i = 0; i < datasize/2 && i < 8; i++, offsetIterator++)
+					{
+						topTile = blockTextures[descriptor[i * 2 + 2] + ".png"];
+						bottomTile = blockTextures[descriptor[i * 2 + 3] + ".png"];
+						
+						drawItemBlockImage(img, getRect(offsetIterator++), bottomTile, B); // bottom tile
+						drawItemBlockImage(img, getRect(offsetIterator), topTile, B); // top tile
+					}
+					continue;
+				}
+				
 			}
 			else if(descriptor[1] == "MULTIITEMDATA")
 			{
@@ -3059,6 +3145,16 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 0, B);  // repeater on E
 				drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 3, B);  // repeater on S
 				drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 2, B);  // repeater on W
+				
+				if(descriptorsize == 6) // combined state (comparator) - draw extra tiles
+				{
+					baseTile = blockTextures.at(descriptor[4] + ".png");
+					torchTile = blockTextures.at(descriptor[5] + ".png");
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 1, B);  // repeater on N
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 0, B);  // repeater on E
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 3, B);  // repeater on S
+					drawRepeater(img, getRect(++offsetIterator), baseTile, torchTile, 2, B);  // repeater on W
+				}
 			}
 			else if(descriptor[1] == "LEVER")
 			{
@@ -3171,6 +3267,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				RGBAImage& fillerTile = blockTextures.at((descriptor[3] + ".png"));
 				int contenttype = 0;
 				drawFlowerPot(img, getRect(offsetIterator), flowerpotTile, fillerTile, false, fillerTile, contenttype, B); // flower pot [empty]
+				/*
 				for(int i = 4; i < descriptorsize; i++)
 				{
 					if(i == 12)
@@ -3179,6 +3276,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 						contenttype = 0;
 					drawFlowerPot(img, getRect(++offsetIterator), flowerpotTile, fillerTile, true, blockTextures.at((descriptor[i] + ".png")), contenttype, B);
 				}
+				*/
 			}
 			else if(blockid == 145) // anvil
 			{
