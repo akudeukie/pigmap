@@ -227,7 +227,7 @@ inline bool connectCobblestoneWallUp(RenderJob& rj, const Block& block)
 
 inline bool connectPane(RenderJob& rj, const Block& block)
 {
-    return rj.blockimages.isOpaque(block.id, block.data) && block.id != 130;
+    return block.id == 101 || block.id == 102 || block.id == 160 || (rj.blockimages.isOpaque(block.id, block.data) && block.id != 130);
 }
 
 // fromside: 0 - NS, 1 - WE
@@ -279,8 +279,8 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	else if (blockID == 79)  // ice
 	{
 		// if there's ice to the W or S, we don't draw those faces
-                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
-                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 
 		bool iceW = blockW.id == 79;
 		bool iceS = blockS.id == 79;
@@ -291,10 +291,16 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		else if (iceS)
 			node.bimgoffset += 3;
 	}
+	else if (blockID == 175) // double flowers
+	{
+		Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
+		if(blockD.id == blockID) // if bottom block is double flower too, then draw double flower top
+			node.bimgoffset += 2 * blockD.data + 1;
+	}
 	else if (blockID == 85 || blockID == 113)  // fence, nether fence
 	{
-                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
-                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
 		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		int bits;
@@ -313,10 +319,10 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if (blockID == 139) // cobblestone wall
 	{
-                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
-                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
-                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
-                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
 		int bits = (connectCobblestoneWall(rj, blockN) ? 0x1 : 0) |
 					(connectCobblestoneWall(rj, blockS) ? 0x2 : 0) |
@@ -337,10 +343,10 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if (blockID == 54 || blockID == 146)  // chest
 	{
-                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
-                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
-                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
-                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// if there's another chest to the N, make this a southern half
 		if (blockN.id == blockID)
 			node.bimgoffset += (blockN.data == 4) ? 6 : 10;
@@ -353,26 +359,26 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		else if (blockE.id == blockID)
 			node.bimgoffset += (blockE.data == 2) ? 3 : 4;
 	}
-	else if (blockID == 101 || blockID == 102)  // iron bars, glass pane
+	else if (blockID == 101 || blockID == 102 || blockID == 160)  // iron bars, glass pane, stained glass pane
 	{
-                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
-                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
-                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
-                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets the full cross)
-		int bits = ((blockN.id == blockID || connectPane(rj, blockN)) ? 0x1 : 0) |
-		            ((blockS.id == blockID || connectPane(rj, blockS)) ? 0x2 : 0) |
-		            ((blockE.id == blockID || connectPane(rj, blockE)) ? 0x4 : 0) |
-		            ((blockW.id == blockID || connectPane(rj, blockW)) ? 0x8 : 0);
+		int bits = ((connectPane(rj, blockN)) ? 0x1 : 0) |
+		            ((connectPane(rj, blockS)) ? 0x2 : 0) |
+		            ((connectPane(rj, blockE)) ? 0x4 : 0) |
+		            ((connectPane(rj, blockW)) ? 0x8 : 0);
 		if (bits != 0 && bits != 15)
 			node.bimgoffset += bits;
 	}
 	else if (blockID == 55 || blockID == 132)  // wire
 	{
-                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
-                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
-                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
-                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		// decide which edges to draw based on which neighbors are not air (zero neighbors gets EW)
 		int bits = 0;
 		if(blockID == 55)
@@ -395,10 +401,10 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if ((blockID == 104 || blockID == 105) && blockData == 7)  // full stem
 	{
-                Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
-                Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
-                Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
-                Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		int target = (blockID == 104) ? 86 : 103;
 		if (blockN.id == target)
 			node.bimgoffset += 1;
@@ -411,8 +417,8 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 	}
 	else if (blockID == 64 || blockID == 71)  // wooden door, iron door
 	{
-                Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
-                Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
+		Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
+		Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
 		bool isTop = blockD.id == blockID;
 		uint8_t blockDataTop = isTop ? blockData : blockU.data;
 		uint8_t blockDataBottom = isTop ? blockD.data : blockData;

@@ -8,9 +8,9 @@
 # Directories should be relative to the image path, or path where renderer is being executed from.
 #
 # You can prefix texture with a / (slash), to apply different filters to the texture.
-# !!!NOTE!!! Filters will be applied only to the copies of textures stored in memory. Original textures will be untouched.
-# If you do so, you can use a couple of directive after a texture name. 
-# !!!NOTE!!! Directive are executed in order of appearance. EXPAND, CHEST and LCHEST create new textures. If you want to apply other filters,
+# !!!NOTE!!! Filters will be applied only to the copies of textures stored in memory. Original textures will not be modified.
+# If you do so, you can use a couple of directives after a texture name. 
+# !!!NOTE!!! Directives are executed in order of appearance. EXPAND, CHEST and LCHEST create new textures. If you want to apply other filters,
 #    they (filters) should go -AFTER- EXPAND directive, and -BEFORE- CHEST and LCHEST directives.
 # !!!NOTE!!! CHEST and LCHEST are similar, but should not be used together.
 # Here is a list of available directives and their syntax:
@@ -43,6 +43,10 @@
 #    	Flips the texture along the x axis. The result is mirrored texture.
 #    	=Example=
 #    	/ stem_straight.png FLIPX
+#  - OVERLAY
+#       Overlays texture with different texture to make single composite texture
+#       =Example=
+#       / doublePlant_sunflower_top.png OVERLAY doublePlant_sunflower_front.png
 #  - CHEST
 #  - LCHEST
 #    	CHEST and LCHEST are directives for generating special tile, in this case - specific tiles for small and large chests. 
@@ -51,10 +55,8 @@
 #    	To use textures with this directive, just prefix the original name with / (slash) in block descriptor list.
 #
 $ /textures/blocks
-activatorRail.png
-activatorRail_powered.png
 anvil_base.png
-anvil_top.png
+anvil_top_damaged_0.png
 anvil_top_damaged_1.png
 anvil_top_damaged_2.png
 beacon.png
@@ -65,16 +67,9 @@ bed_head_end.png
 bed_head_side.png
 bed_head_top.png
 bedrock.png
-blockCoal.png
-blockDiamond.png
-blockEmerald.png
-blockGold.png
-blockIron.png
-blockLapis.png
-blockRedstone.png
 bookshelf.png
-brewingStand.png
-brewingStand_base.png
+brewing_stand.png
+brewing_stand_base.png
 brick.png
 / cactus_bottom.png EXPAND 1 1
 / cactus_side.png EXPAND 1 1
@@ -83,255 +78,344 @@ brick.png
 / cake_inner.png EXPAND 1 1
 / cake_side.png EXPAND 1 1
 / cake_top.png EXPAND 1 1
-carrots_0.png
-carrots_1.png
-carrots_2.png
-carrots_3.png
+carrots_stage_0.png
+carrots_stage_1.png
+carrots_stage_2.png
+carrots_stage_3.png
 cauldron_bottom.png
 cauldron_inner.png
 cauldron_side.png
 cauldron_top.png
 clay.png
-clayHardened.png
-clayHardenedStained_0.png
-clayHardenedStained_1.png
-clayHardenedStained_2.png
-clayHardenedStained_3.png
-clayHardenedStained_4.png
-clayHardenedStained_5.png
-clayHardenedStained_6.png
-clayHardenedStained_7.png
-clayHardenedStained_8.png
-clayHardenedStained_9.png
-clayHardenedStained_10.png
-clayHardenedStained_11.png
-clayHardenedStained_12.png
-clayHardenedStained_13.png
-clayHardenedStained_14.png
-clayHardenedStained_15.png
-cloth_0.png
-cloth_1.png
-cloth_10.png
-cloth_11.png
-cloth_12.png
-cloth_13.png
-cloth_14.png
-cloth_15.png
-cloth_2.png
-cloth_3.png
-cloth_4.png
-cloth_5.png
-cloth_6.png
-cloth_7.png
-cloth_8.png
-cloth_9.png
-cocoa_0.png
-cocoa_1.png
-cocoa_2.png
-commandBlock.png
-comparator.png
-comparator_lit.png
-crops_0.png
-crops_1.png
-crops_2.png
-crops_3.png
-crops_4.png
-crops_5.png
-crops_6.png
-crops_7.png
-daylightDetector_side.png
-daylightDetector_top.png
+coal_block.png
+coal_ore.png
+cobblestone.png
+cobblestone_mossy.png
+cocoa_stage_0.png
+cocoa_stage_1.png
+cocoa_stage_2.png
+command_block.png
+comparator_off.png
+comparator_on.png
+crafting_table_front.png
+crafting_table_side.png
+crafting_table_top.png
+daylight_detector_side.png
+daylight_detector_top.png
 deadbush.png
-destroy_0.png
-destroy_1.png
-destroy_2.png
-destroy_3.png
-destroy_4.png
-destroy_5.png
-destroy_6.png
-destroy_7.png
-destroy_8.png
-destroy_9.png
-detectorRail.png
+destroy_stage_0.png
+destroy_stage_1.png
+destroy_stage_2.png
+destroy_stage_3.png
+destroy_stage_4.png
+destroy_stage_5.png
+destroy_stage_6.png
+destroy_stage_7.png
+destroy_stage_8.png
+destroy_stage_9.png
+diamond_block.png
+diamond_ore.png
 dirt.png
-dispenser_front.png
-doorIron_lower.png
-doorIron_upper.png
-doorWood_lower.png
-doorWood_upper.png
-dragonEgg.png
-dropper_front.png
-enchantment_bottom.png
-enchantment_side.png
-enchantment_top.png
+dirt_podzol_side.png
+dirt_podzol_top.png
+dispenser_front_horizontal.png
+dispenser_front_vertical.png
+door_iron_lower.png
+door_iron_upper.png
+door_wood_lower.png
+door_wood_upper.png
+/ doublePlant_fern_bottom.png DARKEN 0.6 0.95 0.3
+/ doublePlant_fern_top.png DARKEN 0.6 0.95 0.3
+/ doublePlant_grass_bottom.png DARKEN 0.6 0.95 0.3
+/ doublePlant_grass_top.png DARKEN 0.6 0.95 0.3
+doublePlant_paeonia_bottom.png
+doublePlant_paeonia_top.png
+doublePlant_rose_bottom.png
+doublePlant_rose_top.png
+#doublePlant_sunflower_back.png
+doublePlant_sunflower_bottom.png
+#doublePlant_sunflower_front.png
+/ doublePlant_sunflower_top.png OVERLAY doublePlant_sunflower_front.png
+doublePlant_syringa_bottom.png
+doublePlant_syringa_top.png
+dragon_egg.png
+dropper_front_horizontal.png
+dropper_front_vertical.png
+emerald_block.png
+emerald_ore.png
+enchanting_table_bottom.png
+enchanting_table_side.png
+enchanting_table_top.png
+end_stone.png
 endframe_eye.png
 endframe_side.png
 endframe_top.png
 farmland_dry.png
 farmland_wet.png
-fenceIron.png
 / fern.png DARKEN 0.6 0.95 0.3
-fire_0.png
-fire_1.png
-flower.png
-flowerPot.png
-furnace_front.png
-furnace_front_lit.png
+fire_layer_0.png
+fire_layer_1.png
+flower_allium.png
+flower_blue_orchid.png
+flower_dandelion.png
+flower_houstonia.png
+flower_oxeye_daisy.png
+flower_paeonia.png
+flower_pot.png
+flower_rose.png
+flower_tulip_orange.png
+flower_tulip_pink.png
+flower_tulip_red.png
+flower_tulip_white.png
+furnace_front_off.png
+furnace_front_on.png
 furnace_side.png
 furnace_top.png
 glass.png
-goldenRail.png
-goldenRail_powered.png
+glass_black.png
+glass_blue.png
+glass_brown.png
+glass_cyan.png
+glass_gray.png
+glass_green.png
+glass_light_blue.png
+glass_lime.png
+glass_magenta.png
+glass_orange.png
+glass_pane_top.png
+glass_pane_top_black.png
+glass_pane_top_blue.png
+glass_pane_top_brown.png
+glass_pane_top_cyan.png
+glass_pane_top_gray.png
+glass_pane_top_green.png
+glass_pane_top_light_blue.png
+glass_pane_top_lime.png
+glass_pane_top_magenta.png
+glass_pane_top_orange.png
+glass_pane_top_pink.png
+glass_pane_top_purple.png
+glass_pane_top_red.png
+glass_pane_top_silver.png
+glass_pane_top_white.png
+glass_pane_top_yellow.png
+glass_pink.png
+glass_purple.png
+glass_red.png
+glass_silver.png
+glass_white.png
+glass_yellow.png
+glowstone.png
+gold_block.png
+gold_ore.png
 grass_side.png
 grass_side_overlay.png
+grass_side_snowed.png
 / grass_top.png DARKEN 0.6 0.95 0.3
 gravel.png
-hayBlock.png
-hayBlock_top.png
-hellrock.png
-hellsand.png
-hopper.png
+hardened_clay.png
+hardened_clay_stained_black.png
+hardened_clay_stained_blue.png
+hardened_clay_stained_brown.png
+hardened_clay_stained_cyan.png
+hardened_clay_stained_gray.png
+hardened_clay_stained_green.png
+hardened_clay_stained_light_blue.png
+hardened_clay_stained_lime.png
+hardened_clay_stained_magenta.png
+hardened_clay_stained_orange.png
+hardened_clay_stained_pink.png
+hardened_clay_stained_purple.png
+hardened_clay_stained_red.png
+hardened_clay_stained_silver.png
+hardened_clay_stained_white.png
+hardened_clay_stained_yellow.png
+hay_block_side.png
+hay_block_top.png
 hopper_inside.png
+hopper_outside.png
 hopper_top.png
 ice.png
-itemframe_back.png
+ice_packed.png
+iron_bars.png
+iron_block.png
+iron_ore.png
+itemframe_background.png
+jukebox_side.png
 jukebox_top.png
 ladder.png
-lava.png
-/ leaves.png DARKEN 0.3 1.0 0.1
-#/ leaves_opaque.png DARKEN 0.3 1.0 0.1
-/ leaves.png RENAME leaves_birch.png DARKEN 0.55 0.9 0.1
+lapis_block.png
+lapis_ore.png
+lava_still.png
+/ leaves_acacia.png DARKEN 0.55 0.9 0.1
+/ leaves_big_oak.png DARKEN 0.3 1.0 0.1
+/ leaves_birch.png DARKEN 0.55 0.9 0.1
 / leaves_jungle.png DARKEN 0.35, 1.0, 0.05
-#/ leaves_jungle_opaque.png DARKEN 0.35, 1.0, 0.05
+/ leaves_oak.png DARKEN 0.3 1.0 0.1
 / leaves_spruce.png DARKEN 0.3 1.0 0.45
-#/ leaves_spruce_opaque.png DARKEN 0.3 1.0 0.45
 lever.png
-lightgem.png
+log_acacia.png
+log_acacia_top.png
+log_big_oak.png
+log_big_oak_top.png
+log_birch.png
+log_birch_top.png
+log_jungle.png
+log_jungle_top.png
+log_oak.png
+log_oak_top.png
+log_spruce.png
+log_spruce_top.png
 melon_side.png
+/ melon_stem_connected.png RENAME /melon_stem_connected.png_0 DARKEN 0.75 0.6 0.3
+/ melon_stem_connected.png RENAME /melon_stem_connected.png_1 DARKEN 0.75 0.6 0.3 FLIPX
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_0 DARKEN 0.45 0.95 0.4 OFFSET 0 14
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_1 DARKEN 0.45 0.95 0.4 OFFSET 0 12
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_2 DARKEN 0.45 0.95 0.4 OFFSET 0 10
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_3 DARKEN 0.45 0.95 0.4 OFFSET 0 8
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_4 DARKEN 0.45 0.95 0.4 OFFSET 0 6
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_5 DARKEN 0.45 0.95 0.4 OFFSET 0 4
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_6 DARKEN 0.45 0.95 0.4 OFFSET 0 2
+/ melon_stem_disconnected.png RENAME /melon_stem_disconnected.png_7 DARKEN 0.75 0.6 0.3
 melon_top.png
-mobSpawner.png
+mob_spawner.png
+mushroom_block_inside.png
+mushroom_block_skin_brown.png
+mushroom_block_skin_red.png
+mushroom_block_skin_stem.png
 mushroom_brown.png
-mushroom_inside.png
 mushroom_red.png
-mushroom_skin_brown.png
-mushroom_skin_red.png
-mushroom_skin_stem.png
-musicBlock.png
-mycel_side.png
-mycel_top.png
-netherBrick.png
-netherStalk_0.png
-netherStalk_1.png
-netherStalk_2.png
-netherquartz.png
+mycelium_side.png
+mycelium_top.png
+nether_brick.png
+nether_wart_stage_0.png
+nether_wart_stage_1.png
+nether_wart_stage_2.png
+netherrack.png
+noteblock.png
 obsidian.png
-oreCoal.png
-oreDiamond.png
-oreEmerald.png
-oreGold.png
-oreIron.png
-oreLapis.png
-oreRedstone.png
 piston_bottom.png
-piston_inner_top.png
+piston_inner.png
 piston_side.png
-piston_top.png
+piston_top_normal.png
 piston_top_sticky.png
+planks_acacia.png
+planks_big_oak.png
+planks_birch.png
+planks_jungle.png
+planks_oak.png
+planks_spruce.png
 portal.png
-potatoes_0.png
-potatoes_1.png
-potatoes_2.png
-potatoes_3.png
-pumpkin_face.png
-pumpkin_jack.png
+potatoes_stage_0.png
+potatoes_stage_1.png
+potatoes_stage_2.png
+potatoes_stage_3.png
+pumpkin_face_off.png
+pumpkin_face_on.png
 pumpkin_side.png
+/ pumpkin_stem_connected.png RENAME /pumpkin_stem_connected.png_0 DARKEN 0.75 0.6 0.3
+/ pumpkin_stem_connected.png RENAME /pumpkin_stem_connected.png_1 DARKEN 0.75 0.6 0.3 FLIPX
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_0 DARKEN 0.45 0.95 0.4 OFFSET 0 14
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_1 DARKEN 0.45 0.95 0.4 OFFSET 0 12
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_2 DARKEN 0.45 0.95 0.4 OFFSET 0 10
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_3 DARKEN 0.45 0.95 0.4 OFFSET 0 8
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_4 DARKEN 0.45 0.95 0.4 OFFSET 0 6
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_5 DARKEN 0.45 0.95 0.4 OFFSET 0 4
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_6 DARKEN 0.45 0.95 0.4 OFFSET 0 2
+/ pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_7 DARKEN 0.75 0.6 0.3
 pumpkin_top.png
-quartzblock_bottom.png
-quartzblock_chiseled.png
-quartzblock_chiseled_top.png
-quartzblock_lines.png
-quartzblock_lines_top.png
-quartzblock_side.png
-quartzblock_top.png
-rail.png
-rail_turn.png
-/ redstoneDust_cross.png DARKEN 0.9 0.1 0.1
-#redstoneDust_cross_overlay.png
-/ redstoneDust_line.png DARKEN 0.9 0.1 0.1
-#redstoneDust_line_overlay.png
-redstoneLight.png
-redstoneLight_lit.png
-redtorch.png
-redtorch_lit.png
+quartz_block_bottom.png
+quartz_block_chiseled.png
+quartz_block_chiseled_top.png
+quartz_block_lines.png
+quartz_block_lines_top.png
+quartz_block_side.png
+quartz_block_top.png
+quartz_ore.png
+rail_activator.png
+rail_activator_powered.png
+rail_detector.png
+rail_detector_powered.png
+rail_golden.png
+rail_golden_powered.png
+rail_normal.png
+rail_normal_turned.png
+red_sand.png
+redstone_block.png
+/ redstone_dust_cross.png DARKEN 0.9 0.1 0.1
+/ redstone_dust_line.png DARKEN 0.9 0.1 0.1
+redstone_lamp_off.png
+redstone_lamp_on.png
+redstone_ore.png
+redstone_torch_off.png
+redstone_torch_on.png
 reeds.png
-repeater.png
-repeater_lit.png
-results.png
-rose.png
+repeater_off.png
+repeater_on.png
 sand.png
 sandstone_bottom.png
 sandstone_carved.png
-sandstone_side.png
+sandstone_normal.png
 sandstone_smooth.png
 sandstone_top.png
-sapling.png
+sapling_acacia.png
 sapling_birch.png
 sapling_jungle.png
+sapling_oak.png
+sapling_roofed_oak.png
 sapling_spruce.png
 snow.png
-snow_side.png
+soul_sand.png
 sponge.png
-/ stem_bent.png RENAME /stem_bent.png_0 DARKEN 0.75 0.6 0.3
-/ stem_bent.png RENAME /stem_bent.png_1 DARKEN 0.75 0.6 0.3 FLIPX
-/ stem_straight.png RENAME /stem_straight.png_0 DARKEN 0.45 0.95 0.4 OFFSET 0 14
-/ stem_straight.png RENAME /stem_straight.png_1 DARKEN 0.45 0.95 0.4 OFFSET 0 12
-/ stem_straight.png RENAME /stem_straight.png_2 DARKEN 0.45 0.95 0.4 OFFSET 0 10
-/ stem_straight.png RENAME /stem_straight.png_3 DARKEN 0.45 0.95 0.4 OFFSET 0 8
-/ stem_straight.png RENAME /stem_straight.png_4 DARKEN 0.45 0.95 0.4 OFFSET 0 6
-/ stem_straight.png RENAME /stem_straight.png_5 DARKEN 0.45 0.95 0.4 OFFSET 0 4
-/ stem_straight.png RENAME /stem_straight.png_6 DARKEN 0.45 0.95 0.4 OFFSET 0 2
-/ stem_straight.png RENAME /stem_straight.png_7 DARKEN 0.75 0.6 0.3
 stone.png
-stoneMoss.png
+stone_slab_side.png
+stone_slab_top.png
 stonebrick.png
-stonebricksmooth.png
-stonebricksmooth_carved.png
-stonebricksmooth_cracked.png
-stonebricksmooth_mossy.png
-stoneslab_side.png
-stoneslab_top.png
+stonebrick_carved.png
+stonebrick_cracked.png
+stonebrick_mossy.png
 / tallgrass.png DARKEN 0.6 0.95 0.3
-thinglass_top.png
 tnt_bottom.png
 tnt_side.png
 tnt_top.png
-torch.png
+torch_on.png
 trapdoor.png
-tree_birch.png
-tree_jungle.png
-tree_side.png
-tree_spruce.png
-tree_top.png
-/ tripWire.png OFFSET 0 6
-tripWireSource.png
+/ trip_wire.png OFFSET 0 6
+trip_wire_source.png
 / vine.png DARKEN 0.35 1.0 0.15
-water.png
+water_flow.png
+water_still.png
 / waterlily.png DARKEN 0.3 0.95 0.3
 web.png
-whiteStone.png
-wood.png
-wood_birch.png
-wood_jungle.png
-wood_spruce.png
-workbench_front.png
-workbench_side.png
-workbench_top.png
-$ /item
-/ chest.png CHEST
-/ largechest.png LCHEST
-/ enderchest.png CHEST
-$ /item/chests
-/ trap_small.png CHEST
-/ trap_large.png LCHEST
-$ /
-endportal.png
+wheat_stage_0.png
+wheat_stage_1.png
+wheat_stage_2.png
+wheat_stage_3.png
+wheat_stage_4.png
+wheat_stage_5.png
+wheat_stage_6.png
+wheat_stage_7.png
+wool_colored_black.png
+wool_colored_blue.png
+wool_colored_brown.png
+wool_colored_cyan.png
+wool_colored_gray.png
+wool_colored_green.png
+wool_colored_light_blue.png
+wool_colored_lime.png
+wool_colored_magenta.png
+wool_colored_orange.png
+wool_colored_pink.png
+wool_colored_purple.png
+wool_colored_red.png
+wool_colored_silver.png
+wool_colored_white.png
+wool_colored_yellow.png
+$ /textures/entity/chest
+/ normal.png CHEST
+/ normal_double.png LCHEST
+/ ender.png CHEST
+/ trapped.png CHEST
+/ trapped_double.png LCHEST
+$ /textures/entity
+end_portal.png
