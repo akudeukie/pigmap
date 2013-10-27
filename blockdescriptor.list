@@ -220,4 +220,4 @@
 173 SOLID coal_block
 # 1.7
 174 SOLID ice_packed #packed ice
-175 ITEMDATATALLORIENTED doublePlant_sunflower_top doublePlant_sunflower_bottom doublePlant_syringa_top doublePlant_syringa_bottom doublePlant_grass_top doublePlant_grass_bottom doublePlant_fern_top doublePlant_fern_bottom doublePlant_rose_top doublePlant_rose_bottom doublePlant_paeonia_top doublePlant_paeonia_bottom #double flowers (sunflower / lilac / d. tall grass / large fern / rose bush / peony)
+175 ITEMDATATALLORIENTED double_plant_sunflower_top double_plant_sunflower_bottom double_plant_syringa_top double_plant_syringa_bottom double_plant_grass_top double_plant_grass_bottom double_plant_fern_top double_plant_fern_bottom double_plant_rose_top double_plant_rose_bottom double_plant_paeonia_top double_plant_paeonia_bottom #double flowers (sunflower / lilac / d. tall grass / large fern / rose bush / peony)

@@ -124,20 +124,20 @@ door_iron_lower.png
 door_iron_upper.png
 door_wood_lower.png
 door_wood_upper.png
-/ doublePlant_fern_bottom.png DARKEN 0.6 0.95 0.3
-/ doublePlant_fern_top.png DARKEN 0.6 0.95 0.3
-/ doublePlant_grass_bottom.png DARKEN 0.6 0.95 0.3
-/ doublePlant_grass_top.png DARKEN 0.6 0.95 0.3
-doublePlant_paeonia_bottom.png
-doublePlant_paeonia_top.png
-doublePlant_rose_bottom.png
-doublePlant_rose_top.png
-#doublePlant_sunflower_back.png
-doublePlant_sunflower_bottom.png
-#doublePlant_sunflower_front.png
-/ doublePlant_sunflower_top.png OVERLAY doublePlant_sunflower_front.png
-doublePlant_syringa_bottom.png
-doublePlant_syringa_top.png
+/ double_plant_fern_bottom.png DARKEN 0.6 0.95 0.3
+/ double_plant_fern_top.png DARKEN 0.6 0.95 0.3
+/ double_plant_grass_bottom.png DARKEN 0.6 0.95 0.3
+/ double_plant_grass_top.png DARKEN 0.6 0.95 0.3
+double_plant_paeonia_bottom.png
+double_plant_paeonia_top.png
+double_plant_rose_bottom.png
+double_plant_rose_top.png
+#double_plant_sunflower_back.png
+double_plant_sunflower_bottom.png
+#double_plant_sunflower_front.png
+/ double_plant_sunflower_top.png OVERLAY double_plant_sunflower_front.png
+double_plant_syringa_bottom.png
+double_plant_syringa_top.png
 dragon_egg.png
 dropper_front_horizontal.png
 dropper_front_vertical.png
