@@ -89,6 +89,7 @@ cauldron_top.png
 clay.png
 coal_block.png
 coal_ore.png
+coarse_dirt.png
 cobblestone.png
 cobblestone_mossy.png
 cocoa_stage_0.png
@@ -311,6 +312,9 @@ potatoes_stage_0.png
 potatoes_stage_1.png
 potatoes_stage_2.png
 potatoes_stage_3.png
+prismarine_bricks.png
+prismarine_dark.png
+prismarine_rough.png
 pumpkin_face_off.png
 pumpkin_face_on.png
 pumpkin_side.png
@@ -365,10 +369,12 @@ sapling_jungle.png
 sapling_oak.png
 sapling_roofed_oak.png
 sapling_spruce.png
+sea_lantern.png
 slime.png
 snow.png
 soul_sand.png
 sponge.png
+sponge_wet.png
 stone.png
 stone_andesite.png
 stone_andesite_smooth.png

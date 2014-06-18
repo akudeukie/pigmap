@@ -46,7 +46,7 @@
 # blockid blocktype *
 1 SOLIDDATA stone stone_granite stone_granite_smooth stone_diorite stone_diorite_smooth stone_andesite stone_andesite_smooth
 2 SOLID grass_side grass_side grass_top
-3 SOLIDDATATRUNK dirt dirt dirt dirt dirt_podzol_top dirt_podzol_side #dirt / grasless dirt / podzol
+3 SOLIDDATATRUNK dirt dirt coarse_dirt coarse_dirt dirt_podzol_top dirt_podzol_side #dirt / coarse dirt / podzol
 4 SOLID cobblestone #cobblestone
 5 SOLIDDATA planks_oak planks_spruce planks_birch planks_jungle planks_acacia planks_big_oak # oak / spruce / birch / jungle / acacia / dark oak planks
 6 ITEMDATAFILL 8 sapling_oak sapling_spruce sapling_birch sapling_jungle sapling_acacia sapling_roofed_oak #sapling 
@@ -62,7 +62,7 @@
 16 SOLID coal_ore
 17 SOLIDDATATRUNKROTATED S 1 log_oak_top log_oak 1 log_spruce_top log_spruce 1 log_birch_top log_birch 1 log_jungle_top log_jungle # oak / spruce / birch / jungle wood
 18 SOLIDDATAFILL leaves_oak leaves_spruce leaves_birch leaves_jungle # oak / spruce / birch / jungle leaves
-19 SOLID sponge
+19 SOLIDDATA sponge sponge_wet
 20 SOLID glass
 21 SOLID lapis_ore
 22 SOLID lapis_block
@@ -103,7 +103,7 @@
 57 SOLID diamond_block
 58 SOLID crafting_table_front crafting_table_side crafting_table_top #workbench
 59 ITEMDATA wheat_stage_0 wheat_stage_1 wheat_stage_2 wheat_stage_3 wheat_stage_4 wheat_stage_5 wheat_stage_6 wheat_stage_7 #wheat
-60 SOLID dirt dirt farmland_dry #farmland
+60 SOLIDDATATRUNK farmland_dry dirt farmland_dry dirt farmland_dry dirt farmland_dry dirt farmland_wet dirt farmland_wet dirt farmland_wet dirt farmland_wet dirt #farmland
 61 SOLIDORIENTED 2 3 4 5 furnace_front_off furnace_side furnace_top #furnace
 62 SOLIDORIENTED 2 3 4 5 furnace_front_on furnace_side furnace_top #burning furnace
 63 SIGNPOST planks_oak planks_oak #sign post
@@ -217,6 +217,8 @@
 ##166 barrier block
 167 TRAPDOOR iron_trapdoor
 ##168,169 unused
+168 SOLIDDATA prismarine_rough prismarine_bricks prismarine_dark # prismarine rough / bricks / dark
+169 SOLID sea_lantern # sea lantern
 170 SOLIDDATATRUNKROTATED S 1 hay_block_top hay_block_side #hay block
 171 SOLIDDATAPARTIAL 15 0 wool_colored_white wool_colored_orange wool_colored_magenta wool_colored_light_blue wool_colored_yellow wool_colored_lime wool_colored_pink wool_colored_gray wool_colored_silver wool_colored_cyan wool_colored_purple wool_colored_blue wool_colored_brown wool_colored_green wool_colored_red wool_colored_black #carpet
 172 SOLID hardened_clay
