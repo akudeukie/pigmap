@@ -25,6 +25,9 @@ Andrew Brown and contributors).
 The official pigmap repository is at:
 https://github.com/equalpants/pigmap
 
+Latest textures to build tile set is at (if you don't want to manually extract textures):
+https://www.dropbox.com/s/w09hsbfudzev7nk/pigmap_mc_textures.rar
+
 ---------------------------------------------------------------------------------------------------
 
 Supported platforms are Linux and cygwin.  OS X should also be fine, but I haven't tried it
@@ -40,10 +43,13 @@ Use supplied makefile to build with g++.
 
 Change log (important stuff only):
 %LATEST_VERSION%
+-new blocks up to Minecraft 1.8 (prismarine blocks, sea lantern, sponge)
+-fixed farmland block not displaying if it is wet
+
+1.7
 -added support for RGB PNG images (with no alpha channel)
 -endportal.png is no longer included in root directory
--texture names are aligned with 1.6+/1.7 textures; default textures can be downloaded at:
-    https://www.dropbox.com/s/dmr9z7o5prgylf8/pigmap_mc_1_7_textures.rar
+-texture names are aligned with 1.6+/1.7 textures
 -new blocks up to Minecraft 1.7 (packed ice, tall flowers, new flowers, stained glass, stained glass pane)
 -new block type (used for tall flowers)
 -new texture directive (to combine multiple textures in one, to be used for generating tiles)
@@ -187,7 +193,7 @@ incremental update; make a copy if you need to add fancier abilities to it.
 
 c. [optional (kind of)] image path (-g)
 
-This is where pigmap expects to find either a copy of your textures (texture/ folder of your minecraft.jar etc.), or a copy of
+This is where pigmap expects to find either a copy of your textures (textures/ folder of your minecraft.jar etc.), or a copy of
 blocks-B.png (substituting the actual numeric value of B; see below for definition of B), a
 pigmap-generated file that contains the isometric renderings of each block.  These files are not
 optional, but the -g parameter itself may be omitted, in which case "." is used as the image path.
@@ -205,7 +211,13 @@ This means that pigmap will need your tileset the first time it runs, so it can 
 subsequent runs will use the existing blocks-B.png, which can be manually edited if insufficiently
 pretty, or for special effects, etc.
 
-The generate blocks-B.pngi, extract the item/ and textures/ folder of your minecraft.jar into the folder you have specified.
+To generate blocks-B.png, extract the entity/ and blocks/ folders from your minecraft.jar into textures/ folder inside the folder 
+you have specified, so folder structure looks like this:
+/%specified_image_path%
+    /textures
+        /blocks
+        /entity
+
 All of these must be RGBA/RGB (32BPP/24BPP) png files.
 
 d. [optional] number of threads (-t)
