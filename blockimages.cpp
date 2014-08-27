@@ -2824,25 +2824,30 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					{
 					RGBAImage sideface;
 					RGBAImage topface;
+					RGBAImage bottomface;
 					if(descriptorsize == 3)
 					{
-						sideface = topface = blockTextures.at((descriptor[2] + ".png"));
-						
+						sideface = topface = bottomface = blockTextures.at((descriptor[2] + ".png"));
 					}
-					else if(descriptorsize > 3)
+					else if(descriptorsize == 4)
+					{
+						sideface = blockTextures.at((descriptor[2] + ".png"));
+						topface = bottomface = blockTextures.at((descriptor[3] + ".png"));
+					}
+					else if(descriptorsize == 5)
 					{
 						sideface = blockTextures.at((descriptor[2] + ".png"));
 						topface = blockTextures.at((descriptor[3] + ".png"));
-						
+						bottomface = blockTextures.at((descriptor[4] + ".png"));
 					}
 					drawStairsE(img, getRect(offsetIterator), sideface, topface, B);  // stairs asc E
 					drawStairsW(img, getRect(++offsetIterator), sideface, topface, B);  // stairs asc W
 					drawStairsS(img, getRect(++offsetIterator), sideface, topface, B);  // stairs asc S
 					drawStairsN(img, getRect(++offsetIterator), sideface, topface, B);  // stairs asc N
-					drawInvStairsE(img, getRect(++offsetIterator), sideface, topface, B);  // stairs asc E inverted
-					drawInvStairsW(img, getRect(++offsetIterator), sideface, topface, B);  // stairs asc W inverted
-					drawInvStairsS(img, getRect(++offsetIterator), sideface, topface, B);  // stairs asc S inverted
-					drawInvStairsN(img, getRect(++offsetIterator), sideface, topface, B);  // stairs asc N inverted
+					drawInvStairsE(img, getRect(++offsetIterator), sideface, bottomface, B);  // stairs asc E inverted
+					drawInvStairsW(img, getRect(++offsetIterator), sideface, bottomface, B);  // stairs asc W inverted
+					drawInvStairsS(img, getRect(++offsetIterator), sideface, bottomface, B);  // stairs asc S inverted
+					drawInvStairsN(img, getRect(++offsetIterator), sideface, bottomface, B);  // stairs asc N inverted
 				}
 			}
 			else if(descriptor[1] == "FENCE")

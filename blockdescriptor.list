@@ -173,7 +173,7 @@
 125 SOLIDDATA planks_oak planks_spruce planks_birch planks_jungle planks_acacia planks_big_oak #wooden double slabs
 126 SLABDATA planks_oak planks_spruce planks_birch planks_jungle planks_acacia planks_big_oak #wooden slabs
 127 ITEMDATAORIENTED 0 2 3 1 cocoa_stage_0 cocoa_stage_1 cocoa_stage_2 #cocoa pods
-128 STAIR sandstone_normal sandstone_top #sandstone stairs
+128 STAIR sandstone_normal sandstone_top sandstone_bottom #sandstone stairs
 129 SOLID emerald_ore
 130 CHEST /ender #enderchest
 131 ONWALLPARTIALFILL 0 2 3 1 trip_wire_source 0 0 0 0 #tripwire hook
@@ -203,7 +203,7 @@
 153 SOLID quartz_ore
 154 SPECIAL hopper_outside hopper_inside hopper_top #hopper
 155 SOLIDDATATRUNKROTATED O 0 quartz_block_top quartz_block_side 0 quartz_block_chiseled_top quartz_block_chiseled 1 quartz_block_lines_top quartz_block_lines #block of quartz
-156 STAIR quartz_block_side quartz_block_top #quartz stairs
+156 STAIR quartz_block_side quartz_block_top quartz_block_bottom #quartz stairs
 157 RAILPOWERED rail_activator rail_activator_powered #activator rail
 158 SOLIDORIENTED 2 3 4 5 dropper_front_horizontal furnace_side furnace_top #dropper
 # 1.6
@@ -216,7 +216,6 @@
 165 SOLID slime
 ##166 barrier block
 167 TRAPDOOR iron_trapdoor
-##168,169 unused
 168 SOLIDDATA prismarine_rough prismarine_bricks prismarine_dark # prismarine rough / bricks / dark
 169 SOLID sea_lantern # sea lantern
 170 SOLIDDATATRUNKROTATED S 1 hay_block_top hay_block_side #hay block
@@ -226,3 +225,25 @@
 # 1.7
 174 SOLID ice_packed #packed ice
 175 ITEMDATATALLORIENTED double_plant_sunflower_top double_plant_sunflower_bottom double_plant_syringa_top double_plant_syringa_bottom double_plant_grass_top double_plant_grass_bottom double_plant_fern_top double_plant_fern_bottom double_plant_rose_top double_plant_rose_bottom double_plant_paeonia_top double_plant_paeonia_bottom #double flowers (sunflower / lilac / d. tall grass / large fern / rose bush / peony)
+#176 #standing banner
+#177 #wall banner
+178 SOLIDPARTIAL 10 0 daylight_detector_side daylight_detector_side daylight_detector_inverted_top #inverted daylight detector
+179 SOLIDDATATRUNK red_sandstone_top red_sandstone_normal red_sandstone_top red_sandstone_carved red_sandstone_top red_sandstone_smooth #red sandstone
+180 STAIR red_sandstone_normal red_sandstone_top red_sandstone_bottom #red sandstone stair
+181 SOLIDDATATRUNK red_sandstone_top red_sandstone_normal #red sandstone double slab
+182 SLABDATATRUNK red_sandstone_top red_sandstone_normal #red sandstone slab
+183 FENCEGATE planks_spruce
+184 FENCEGATE planks_birch
+185 FENCEGATE planks_jungle
+186 FENCEGATE planks_big_oak
+187 FENCEGATE planks_acacia
+188 FENCE planks_spruce
+189 FENCE planks_birch
+190 FENCE planks_jungle
+191 FENCE planks_big_oak
+192 FENCE planks_acacia
+193 DOOR door_spruce_lower door_spruce_upper #spruce door
+194 DOOR door_birch_lower door_birch_upper #birch door
+195 DOOR door_jungle_lower door_jungle_upper #jungle door
+196 DOOR door_acacia_lower door_acacia_upper #acacia door
+197 DOOR door_dark_oak_lower door_dark_oak_upper #dark oak door

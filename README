@@ -26,14 +26,14 @@ The official pigmap repository is at:
 https://github.com/equalpants/pigmap
 
 Latest textures to build tile set is at (if you don't want to manually extract textures):
-https://www.dropbox.com/s/w09hsbfudzev7nk/pigmap_mc_textures.rar
+https://www.dropbox.com/s/qkckuwbu1an77sm/pigmap_mc_textures.7z
 
 ---------------------------------------------------------------------------------------------------
 
 Supported platforms are Linux and cygwin.  OS X should also be fine, but I haven't tried it
 myself.  (I've heard reports of it working, though.)
 
-Dependencies are zlib, libpng, pthreads, and some very basic system stuff: getopt, mkdir,
+Dependencies are zlib, libpng, libjpeg, pthreads, and some very basic system stuff: getopt, mkdir,
 dirent.h.  If your platform has a separate development package for libpng (called libpng-dev,
 libpng-devel, or something like that), you'll need that one, too.
 
@@ -42,9 +42,13 @@ Use supplied makefile to build with g++.
 ---------------------------------------------------------------------------------------------------
 
 Change log (important stuff only):
-%LATEST_VERSION%
--new blocks up to Minecraft 1.8 (prismarine blocks, sea lantern, sponge)
--fixed farmland block not displaying if it is wet
+1.8
+-new blocks up to Minecraft 1.8 (andesite, diorite, granite, coarse dirt
+  prismarine blocks, sea lantern, sponge, iron trapdoor, inverted daylight sensor)
+-new fence & fence gate variants
+-new door variants
+-added different bottom texture for stairs (sandstone, quartz, red sandstone)
+-fixed farmland block not showing if it is wet
 
 1.7
 -added support for RGB PNG images (with no alpha channel)

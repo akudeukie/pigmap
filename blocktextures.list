@@ -101,6 +101,7 @@ comparator_on.png
 crafting_table_front.png
 crafting_table_side.png
 crafting_table_top.png
+daylight_detector_inverted_top.png
 daylight_detector_side.png
 daylight_detector_top.png
 deadbush.png
@@ -121,8 +122,18 @@ dirt_podzol_side.png
 dirt_podzol_top.png
 dispenser_front_horizontal.png
 dispenser_front_vertical.png
+door_acacia_lower.png
+door_acacia_upper.png
+door_birch_lower.png
+door_birch_upper.png
+door_dark_oak_lower.png
+door_dark_oak_upper.png
 door_iron_lower.png
 door_iron_upper.png
+door_jungle_lower.png
+door_jungle_upper.png
+door_spruce_lower.png
+door_spruce_upper.png
 door_wood_lower.png
 door_wood_upper.png
 / double_plant_fern_bottom.png DARKEN 0.6 0.95 0.3
@@ -346,6 +357,11 @@ rail_golden_powered.png
 rail_normal.png
 rail_normal_turned.png
 red_sand.png
+red_sandstone_bottom.png
+red_sandstone_carved.png
+red_sandstone_normal.png
+red_sandstone_smooth.png
+red_sandstone_top.png
 redstone_block.png
 / redstone_dust_cross.png DARKEN 0.9 0.1 0.1
 / redstone_dust_line.png DARKEN 0.9 0.1 0.1

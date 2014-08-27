@@ -207,7 +207,8 @@ inline Block getNeighborUD(ChunkData* chunkdata, const BlockIdx& bin)
 
 inline bool connectFence(RenderJob& rj, const Block& block)
 {
-	return block.id == 85 || block.id == 107 || rj.blockimages.isOpaque(block.id, block.data);
+	return block.id == 85 || block.id == 188 || block.id == 189 || block.id == 190 || block.id == 191 || block.id == 192 ||
+		block.id == 107 || block.id == 183 || block.id == 184 || block.id == 185 || block.id == 186 || block.id == 187 || rj.blockimages.isOpaque(block.id, block.data);
 }
 
 inline bool connectNetherFence(RenderJob& rj, const Block& block)
@@ -297,23 +298,23 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		if(blockD.id == blockID) // if bottom block is double flower too, then draw double flower top
 			node.bimgoffset += 2 * blockD.data + 1;
 	}
-	else if (blockID == 85 || blockID == 113)  // fence, nether fence
+	else if (blockID == 85 || blockID == 188 || blockID == 189 || blockID == 190 || blockID == 191 || blockID == 192 || blockID == 113)  // fences, nether fence
 	{
 		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
 		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
 		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
 		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
 		int bits;
-		if(blockID == 85) // fence
-			bits = (connectFence(rj, blockN) ? 0x1 : 0) |
-		            (connectFence(rj, blockS) ? 0x2 : 0) |
-		            (connectFence(rj, blockE) ? 0x4 : 0) |
-		            (connectFence(rj, blockW) ? 0x8 : 0);
-		else // nether fence
+		if(blockID == 113) // nether fence
 			bits = (connectNetherFence(rj, blockN) ? 0x1 : 0) |
 		            (connectNetherFence(rj, blockS) ? 0x2 : 0) |
 		            (connectNetherFence(rj, blockE) ? 0x4 : 0) |
 		            (connectNetherFence(rj, blockW) ? 0x8 : 0);
+		else // fence
+			bits = (connectFence(rj, blockN) ? 0x1 : 0) |
+		            (connectFence(rj, blockS) ? 0x2 : 0) |
+		            (connectFence(rj, blockE) ? 0x4 : 0) |
+		            (connectFence(rj, blockW) ? 0x8 : 0);
 		if (bits != 0)
 			node.bimgoffset += bits;
 	}
@@ -415,7 +416,7 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 		else if (blockE.id == target)
 			node.bimgoffset += 4;
 	}
-	else if (blockID == 64 || blockID == 71)  // wooden door, iron door
+	else if (blockID == 64 || blockID == 71 || blockID == 193 || blockID == 194 || blockID == 195 || blockID == 196 || blockID == 197)  // wooden door, iron door, other wooden doors
 	{
 		Block blockU = getNeighborUD(chunkdata, bi + BlockIdx(0,0,1));
 		Block blockD = getNeighborUD(chunkdata, bi + BlockIdx(0,0,-1));
