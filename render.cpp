@@ -221,6 +221,10 @@ inline bool connectCobblestoneWall(RenderJob& rj, const Block& block)
     return block.id == 139 || block.id == 107 || block.id == 120 || (rj.blockimages.isOpaque(block.id, block.data) && block.id != 46 && block.id != 89 && block.id != 54 && block.id != 130 && block.id != 29 && block.id != 33);
 }
 
+inline bool connectChorusPlant(RenderJob& rj, const Block& block)
+{
+	return block.id == 199 || block.id == 200;
+}
 inline bool connectCobblestoneWallUp(RenderJob& rj, const Block& block)
 {
     return block.id != 0 || rj.blockimages.isOpaque(block.id, block.data);
@@ -340,6 +344,22 @@ void checkSpecial(SceneGraphNode& node, uint16_t blockID, uint8_t blockData, con
 				node.bimgoffset += 17;
 			else
 				node.bimgoffset += bits;
+		}
+	}
+	else if(blockID == 199) // chorus plant (workaround)
+	{
+		Block blockW = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(-1,0,0));
+		Block blockS = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,1,0));
+		Block blockN = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(0,-1,0));
+		Block blockE = getNeighbor(chunkdata, rj, ci, bi + BlockIdx(1,0,0));
+		int bits = (connectChorusPlant(rj, blockN) ? 0x1 : 0) |
+					(connectChorusPlant(rj, blockS) ? 0x2 : 0) |
+					(connectChorusPlant(rj, blockE) ? 0x4 : 0) |
+					(connectChorusPlant(rj, blockW) ? 0x8 : 0);
+					
+		if (bits != 0)
+		{
+			node.bimgoffset += bits;
 		}
 	}
 	else if (blockID == 54 || blockID == 146)  // chest

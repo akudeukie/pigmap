@@ -86,6 +86,9 @@ cauldron_bottom.png
 cauldron_inner.png
 cauldron_side.png
 cauldron_top.png
+chorus_flower.png
+chorus_flower_dead.png
+chorus_plant.png
 clay.png
 coal_block.png
 coal_ore.png
@@ -158,6 +161,8 @@ emerald_ore.png
 enchanting_table_bottom.png
 enchanting_table_side.png
 enchanting_table_top.png
+end_bricks.png
+end_rod.png
 end_stone.png
 endframe_eye.png
 endframe_side.png
@@ -340,6 +345,9 @@ pumpkin_side.png
 / pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_6 DARKEN 0.45 0.95 0.4 OFFSET 0 2
 / pumpkin_stem_disconnected.png RENAME /pumpkin_stem_disconnected.png_7 DARKEN 0.75 0.6 0.3
 pumpkin_top.png
+purpur_block.png
+purpur_pillar.png
+purpur_pillar_top.png
 quartz_block_bottom.png
 quartz_block_chiseled.png
 quartz_block_chiseled_top.png

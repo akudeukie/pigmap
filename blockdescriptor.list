@@ -247,3 +247,13 @@
 195 DOOR door_jungle_lower door_jungle_upper #jungle door
 196 DOOR door_acacia_lower door_acacia_upper #acacia door
 197 DOOR door_dark_oak_lower door_dark_oak_upper #dark oak door
+# 1.9
+#198 # ender rod
+199 WALLDATA chorus_plant # chorus plant
+200 SOLIDDATA chorus_flower chorus_flower chorus_flower chorus_flower chorus_flower chorus_flower_dead # chorus flower
+201 SOLID purpur_block # purpur block
+202 SOLIDDATATRUNKROTATED S 1 purpur_pillar_top purpur_pillar # purpur pillar
+203 STAIR purpur_block # purpur stairs
+204 SOLID purpur_block # purpur double slab
+205 SLABDATA purpur_block # purpur slab
+206 SOLID end_bricks # end stone bricks
