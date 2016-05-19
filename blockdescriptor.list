@@ -183,7 +183,7 @@
 135 STAIR planks_birch #birch wood stairs
 136 STAIR planks_jungle #jungle wood stairs
 # 1.4
-137 SOLID command_block
+137 SOLIDROTATED command_block_front command_block_side command_block_back #command block
 138 SPECIAL beacon obsidian 20 #beacon
 139 WALLDATA cobblestone cobblestone_mossy #cobblestone / mossy cobblestone wall
 140 SPECIAL flower_pot dirt flower_rose flower_dandelion sapling_oak sapling_spruce sapling_birch sapling_jungle mushroom_red mushroom_brown cactus_side deadbush fern wool_colored_white wool_colored_white wool_colored_white wool_colored_white wool_colored_white #flower pot
@@ -257,3 +257,14 @@
 204 SOLID purpur_block # purpur double slab
 205 SLABDATA purpur_block # purpur slab
 206 SOLID end_bricks # end stone bricks
+207 MULTIITEMDATA beetroots_stage_0 beetroots_stage_1 beetroots_stage_2 beetroots_stage_3 #beetroot
+208 SOLIDPARTIAL 1 0 grass_path_side grass_path_side grass_path_top #grass path
+209 SOLID end_portal #end gateway
+210 SOLIDROTATED repeating_command_block_front repeating_command_block_side repeating_command_block_back #repeating command block
+211 SOLIDROTATED chain_command_block_front chain_command_block_side chain_command_block_back #chained command block
+212 SOLIDDATA frosted_ice_0 frosted_ice_1 frosted_ice_2 frosted_ice_3 #frosted ice
+# 1.10
+213 SOLID magma #magma block
+214 SOLID nether_wart_block #nether wart block
+215 SOLID red_nether_brick #red nether brick
+216 SOLIDDATATRUNKROTATED S 1 bone_block_top bone_block_side #bone block
