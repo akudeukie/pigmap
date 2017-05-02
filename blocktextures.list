@@ -32,9 +32,10 @@
 #  - OFFSETTILE offsetX offsetY
 #    	Same as OFFSET, but texture is tiled - it repeats it's pattern from opposite side where it is being offset.
 #  - EXPAND expandX expandY
-#    	Expands texture by a specified amount by resizing it. Using this directive results in new texture. Use this directive before other directives.
+#    	Expands specified region of the texture to full tile size by resizing it. Using this directive results in new texture. Use this directive before other directives.
+#    	/ %texturename% EXPAND x y width height
 #    	=Example=
-#    	/ cake_top.png EXPAND 1 1
+#    	/ cake_top.png EXPAND 1 1 14 14
 #  - CROP top right bottom left
 #    	Crops texture from each side by a specified amount. Amount is specified in pixels (x out 16).
 #    	=Example=
@@ -77,13 +78,13 @@ bookshelf.png
 brewing_stand.png
 brewing_stand_base.png
 brick.png
-/ cactus_bottom.png EXPAND 1 1
-/ cactus_side.png EXPAND 1 1
-/ cactus_top.png EXPAND 1 1
-/ cake_bottom.png EXPAND 1 1
-/ cake_inner.png EXPAND 1 1
-/ cake_side.png EXPAND 1 1
-/ cake_top.png EXPAND 1 1
+/ cactus_bottom.png EXPAND 1 1 14 14
+/ cactus_side.png EXPAND 1 1 14 14
+/ cactus_top.png EXPAND 1 1 14 14
+/ cake_bottom.png EXPAND 1 1 14 14
+/ cake_inner.png EXPAND 1 1 14 14
+/ cake_side.png EXPAND 1 1 14 14
+/ cake_top.png EXPAND 1 1 14 14
 carrots_stage_0.png
 carrots_stage_1.png
 carrots_stage_2.png
@@ -114,6 +115,38 @@ command_block_front.png
 command_block_side.png
 comparator_off.png
 comparator_on.png
+concrete_black.png
+concrete_blue.png
+concrete_brown.png
+concrete_cyan.png
+concrete_gray.png
+concrete_green.png
+concrete_light_blue.png
+concrete_lime.png
+concrete_magenta.png
+concrete_orange.png
+concrete_pink.png
+concrete_powder_black.png
+concrete_powder_blue.png
+concrete_powder_brown.png
+concrete_powder_cyan.png
+concrete_powder_gray.png
+concrete_powder_green.png
+concrete_powder_light_blue.png
+concrete_powder_lime.png
+concrete_powder_magenta.png
+concrete_powder_orange.png
+concrete_powder_pink.png
+concrete_powder_purple.png
+concrete_powder_red.png
+concrete_powder_silver.png
+concrete_powder_white.png
+concrete_powder_yellow.png
+concrete_purple.png
+concrete_red.png
+concrete_silver.png
+concrete_white.png
+concrete_yellow.png
 crafting_table_front.png
 crafting_table_side.png
 crafting_table_top.png
@@ -176,6 +209,8 @@ enchanting_table_side.png
 enchanting_table_top.png
 end_bricks.png
 end_rod.png
+/ end_rod.png RENAME /end_rod_lamp.png EXPAND 0 0 2 15
+/ end_rod.png RENAME /end_rod_base.png EXPAND 2 2 4 5
 end_stone.png
 endframe_eye.png
 endframe_side.png
@@ -239,6 +274,22 @@ glass_red.png
 glass_silver.png
 glass_white.png
 glass_yellow.png
+glazed_terracotta_black.png
+glazed_terracotta_blue.png
+glazed_terracotta_brown.png
+glazed_terracotta_cyan.png
+glazed_terracotta_gray.png
+glazed_terracotta_green.png
+glazed_terracotta_light_blue.png
+glazed_terracotta_lime.png
+glazed_terracotta_magenta.png
+glazed_terracotta_orange.png
+glazed_terracotta_pink.png
+glazed_terracotta_purple.png
+glazed_terracotta_red.png
+glazed_terracotta_silver.png
+glazed_terracotta_white.png
+glazed_terracotta_yellow.png
 glowstone.png
 gold_block.png
 gold_ore.png
@@ -332,6 +383,11 @@ nether_wart_stage_1.png
 nether_wart_stage_2.png
 netherrack.png
 noteblock.png
+observer_back.png
+observer_back_lit.png
+observer_front.png
+observer_side.png
+observer_top.png
 obsidian.png
 piston_bottom.png
 piston_inner.png
@@ -420,6 +476,22 @@ sapling_oak.png
 sapling_roofed_oak.png
 sapling_spruce.png
 sea_lantern.png
+shulker_top_black.png
+shulker_top_blue.png
+shulker_top_brown.png
+shulker_top_cyan.png
+shulker_top_gray.png
+shulker_top_green.png
+shulker_top_light_blue.png
+shulker_top_lime.png
+shulker_top_magenta.png
+shulker_top_orange.png
+shulker_top_pink.png
+shulker_top_purple.png
+shulker_top_red.png
+shulker_top_silver.png
+shulker_top_white.png
+shulker_top_yellow.png
 slime.png
 snow.png
 soul_sand.png

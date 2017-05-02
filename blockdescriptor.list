@@ -3,7 +3,7 @@
 # block types:
 # 0 SOLID (specify texture for all faces, all textures for west face, south face, top face; like any solid block)
 # 1 SOLIDORIENTED (solid blocks, that can be oriented N,S,W,E but not U or D; specify list of bits for N,S,W,E, then textures for face, side, top; like dispensers, furnaces, pumpkins, jack 'o' lanterns)
-# 2 SOLIDROTATED (solid blocks, that can be oriented in any direction; specify top(face), side, bottom(opposite to face) textures ;like pistons)
+# 2 SOLIDROTATED (solid blocks, that can be oriented in any direction; specify degrees of freedom(4/6), specify top(face), side, bottom(opposite to face) textures ;like pistons)
 # 3 SOLIDDATA (list all textures in order of data bits; like wooden planks, wool, wooden double slabs)
 # 4 SOLIDDATAFILL (like SOLIDDATA, but "tiles" existing data over remaining bits(if any); like leaves)
 # 5 SOLIDDATATRUNK (specify pairs of textures for top and sides for each data bit; like sandstone, double slabs)
@@ -72,11 +72,11 @@
 26 SPECIAL bed_feet_end bed_feet_side bed_feet_top bed_head_end bed_head_side bed_head_top #bed
 27 RAILPOWERED rail_golden rail_golden_powered #powered rail
 28 RAIL rail_detector #detector rail
-29 SOLIDROTATED piston_top_sticky piston_side piston_bottom #sticky piston
+29 SOLIDROTATED 6 piston_top_sticky piston_side piston_bottom #sticky piston
 30 ITEMDATA web #cobweb
 31 ITEMDATA deadbush tallgrass fern #tall grass
 32 ITEMDATA deadbush #dead bush
-33 SOLIDROTATED piston_top_normal piston_side piston_bottom #piston
+33 SOLIDROTATED 6 piston_top_normal piston_side piston_bottom #piston
 ##34 technical block
 35 SOLIDDATA wool_colored_white wool_colored_orange wool_colored_magenta wool_colored_light_blue wool_colored_yellow wool_colored_lime wool_colored_pink wool_colored_gray wool_colored_silver wool_colored_cyan wool_colored_purple wool_colored_blue wool_colored_brown wool_colored_green wool_colored_red wool_colored_black #wool
 ##36 technical block
@@ -183,7 +183,7 @@
 135 STAIR planks_birch #birch wood stairs
 136 STAIR planks_jungle #jungle wood stairs
 # 1.4
-137 SOLIDROTATED command_block_front command_block_side command_block_back #command block
+137 SOLIDROTATED 6 command_block_front command_block_side command_block_back #command block
 138 SPECIAL beacon obsidian 20 #beacon
 139 WALLDATA cobblestone cobblestone_mossy #cobblestone / mossy cobblestone wall
 140 SPECIAL flower_pot dirt flower_rose flower_dandelion sapling_oak sapling_spruce sapling_birch sapling_jungle mushroom_red mushroom_brown cactus_side deadbush fern wool_colored_white wool_colored_white wool_colored_white wool_colored_white wool_colored_white #flower pot
@@ -248,7 +248,7 @@
 196 DOOR door_acacia_lower door_acacia_upper #acacia door
 197 DOOR door_dark_oak_lower door_dark_oak_upper #dark oak door
 # 1.9
-#198 # ender rod
+198 SPECIAL /end_rod_lamp /end_rod_base # end rod
 199 WALLDATA chorus_plant # chorus plant
 200 SOLIDDATA chorus_flower chorus_flower chorus_flower chorus_flower chorus_flower chorus_flower_dead # chorus flower
 201 SOLID purpur_block # purpur block
@@ -260,11 +260,48 @@
 207 MULTIITEMDATA beetroots_stage_0 beetroots_stage_1 beetroots_stage_2 beetroots_stage_3 #beetroot
 208 SOLIDPARTIAL 1 0 grass_path_side grass_path_side grass_path_top #grass path
 209 SOLID end_portal #end gateway
-210 SOLIDROTATED repeating_command_block_front repeating_command_block_side repeating_command_block_back #repeating command block
-211 SOLIDROTATED chain_command_block_front chain_command_block_side chain_command_block_back #chained command block
+210 SOLIDROTATED 6 repeating_command_block_front repeating_command_block_side repeating_command_block_back #repeating command block
+211 SOLIDROTATED 6 chain_command_block_front chain_command_block_side chain_command_block_back #chained command block
 212 SOLIDDATA frosted_ice_0 frosted_ice_1 frosted_ice_2 frosted_ice_3 #frosted ice
 # 1.10
 213 SOLID magma #magma block
 214 SOLID nether_wart_block #nether wart block
 215 SOLID red_nether_brick #red nether brick
 216 SOLIDDATATRUNKROTATED S 1 bone_block_top bone_block_side #bone block
+# 1.11
+218 SOLIDORIENTED 2 3 4 5 observer_front observer_side observer_top # observer
+219 SOLID shulker_top_white
+220 SOLID shulker_top_orange
+221 SOLID shulker_top_magenta
+222 SOLID shulker_top_light_blue
+223 SOLID shulker_top_yellow
+224 SOLID shulker_top_lime
+225 SOLID shulker_top_pink
+226 SOLID shulker_top_gray
+227 SOLID shulker_top_silver
+228 SOLID shulker_top_cyan
+229 SOLID shulker_top_purple
+230 SOLID shulker_top_blue
+231 SOLID shulker_top_brown
+232 SOLID shulker_top_green
+233 SOLID shulker_top_red
+234 SOLID shulker_top_black
+# 1.12
+251 SOLIDDATA concrete_white concrete_orange concrete_magenta concrete_light_blue concrete_yellow concrete_lime concrete_pink concrete_gray concrete_silver concrete_cyan concrete_purple concrete_blue concrete_brown concrete_green concrete_red concrete_black # concrete 0-16
+252 SOLIDDATA concrete_powder_white concrete_powder_orange concrete_powder_magenta concrete_powder_light_blue concrete_powder_yellow concrete_powder_lime concrete_powder_pink concrete_powder_gray concrete_powder_silver concrete_powder_cyan concrete_powder_purple concrete_powder_blue concrete_powder_brown concrete_powder_green concrete_powder_red concrete_powder_black # concrete powder 0-16
+235 SOLIDROTATED 4 glazed_terracotta_white
+236 SOLIDROTATED 4 glazed_terracotta_orange
+237 SOLIDROTATED 4 glazed_terracotta_magenta
+238 SOLIDROTATED 4 glazed_terracotta_light_blue
+239 SOLIDROTATED 4 glazed_terracotta_yellow
+240 SOLIDROTATED 4 glazed_terracotta_lime
+241 SOLIDROTATED 4 glazed_terracotta_pink
+242 SOLIDROTATED 4 glazed_terracotta_gray
+243 SOLIDROTATED 4 glazed_terracotta_silver
+244 SOLIDROTATED 4 glazed_terracotta_cyan
+245 SOLIDROTATED 4 glazed_terracotta_purple
+246 SOLIDROTATED 4 glazed_terracotta_blue
+247 SOLIDROTATED 4 glazed_terracotta_brown
+248 SOLIDROTATED 4 glazed_terracotta_green
+249 SOLIDROTATED 4 glazed_terracotta_red
+250 SOLIDROTATED 4 glazed_terracotta_black

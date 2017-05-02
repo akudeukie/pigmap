@@ -130,6 +130,13 @@ bool RGBAImage::readPNG(const string& filename)
 	png_set_sig_bytes(png, 8);
 
 	png_read_info(png, info);
+	
+	if(PNG_COLOR_TYPE_PALETTE == png_get_color_type(png, info))
+	{
+		png_set_palette_to_rgb(png);
+		png_read_update_info(png, info);
+	}
+	
 	if ((PNG_COLOR_TYPE_RGB_ALPHA != png_get_color_type(png, info) && PNG_COLOR_TYPE_RGB != png_get_color_type(png, info)) || 8 != png_get_bit_depth(png, info))
 		return false;
 	

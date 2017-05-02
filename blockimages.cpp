@@ -1540,6 +1540,85 @@ void drawHopper(RGBAImage& dest, const ImageRect& drect, const RGBAImage& baseTi
 	
 } 
 
+// draw end rod
+void drawEndRod(RGBAImage& dest, const ImageRect& drect, const RGBAImage& lampTile, const RGBAImage& baseTile, int orientation, int B)
+{
+	int tilesize = 2*B;
+	
+	int CUTOFF_1_16 = deinterpolate(1, 16, tilesize);
+	int CUTOFF_6_16 = deinterpolate(6, 16, tilesize);
+	int CUTOFF_7_16 = deinterpolate(7, 16, tilesize);
+	int CUTOFF_15_16 = deinterpolate(15, 16, tilesize);
+	
+	if(orientation == 0) // D
+	{
+		drawOffsetPaddedUFace(dest, drect, lampTile, B, CUTOFF_1_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16); // U face
+		drawOffsetPaddedWFace(dest, drect, lampTile, B, 0.85, CUTOFF_7_16, CUTOFF_1_16, 0, CUTOFF_7_16, CUTOFF_7_16); // W face
+		drawOffsetPaddedSFace(dest, drect, lampTile, B, 0.7, CUTOFF_7_16, CUTOFF_1_16, 0, CUTOFF_7_16, CUTOFF_7_16); // S face // S face
+		/* ----- */
+		drawOffsetPaddedUFace(dest, drect, baseTile, B, 0, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // U face
+		drawOffsetPaddedWFace(dest, drect, baseTile, B, 0.85, CUTOFF_6_16, 0, CUTOFF_15_16, CUTOFF_6_16, CUTOFF_6_16); // W face
+		drawOffsetPaddedSFace(dest, drect, baseTile, B, 0.7, CUTOFF_6_16, 0, CUTOFF_15_16, CUTOFF_6_16, CUTOFF_6_16); // S face
+	}
+	else if(orientation == 1) // U - base first
+	{
+		drawOffsetPaddedUFace(dest, drect, baseTile, B, CUTOFF_15_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // U face
+		drawOffsetPaddedWFace(dest, drect, baseTile, B, 0.85, CUTOFF_6_16, CUTOFF_15_16, 0, CUTOFF_6_16, CUTOFF_6_16); // W face
+		drawOffsetPaddedSFace(dest, drect, baseTile, B, 0.7, CUTOFF_6_16, CUTOFF_15_16, 0, CUTOFF_6_16, CUTOFF_6_16); // S face
+		/* ----- */
+		drawOffsetPaddedUFace(dest, drect, lampTile, B, 0, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16); // U face
+		drawOffsetPaddedWFace(dest, drect, lampTile, B, 0.85, CUTOFF_7_16, 0, CUTOFF_1_16, CUTOFF_7_16, CUTOFF_7_16); // W face
+		drawOffsetPaddedSFace(dest, drect, lampTile, B, 0.7, CUTOFF_7_16, 0, CUTOFF_1_16, CUTOFF_7_16, CUTOFF_7_16); // S face
+		
+		
+	}
+	else if(orientation == 2)
+	{
+		drawOffsetPaddedUFace(dest, drect, lampTile, B, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, 0, CUTOFF_1_16); // U face
+		drawOffsetPaddedWFace(dest, drect, lampTile, B, 0.85, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, 0, CUTOFF_1_16); // W face
+		drawOffsetPaddedSFace(dest, drect, lampTile, B, 0.7, CUTOFF_1_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16); // S face
+		/* ----- */
+		drawOffsetPaddedUFace(dest, drect, baseTile, B, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_15_16, 0); // U face
+		drawOffsetPaddedWFace(dest, drect, baseTile, B, 0.85, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_15_16, 0); // W face
+		drawOffsetPaddedSFace(dest, drect, baseTile, B, 0.7, 0, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // S face
+	}
+	else if(orientation == 3) // base first
+	{
+		drawOffsetPaddedUFace(dest, drect, baseTile, B, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, 0, CUTOFF_15_16); // U face
+		drawOffsetPaddedWFace(dest, drect, baseTile, B, 0.85, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, 0, CUTOFF_15_16); // W face
+		drawOffsetPaddedSFace(dest, drect, baseTile, B, 0.7, CUTOFF_15_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // S face
+		/* ----- */
+		drawOffsetPaddedUFace(dest, drect, lampTile, B, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_1_16, 0); // U face
+		drawOffsetPaddedWFace(dest, drect, lampTile, B, 0.85, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_1_16, 0); // W face
+		drawOffsetPaddedSFace(dest, drect, lampTile, B, 0.7, 0, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16); // S face
+		
+		
+	}
+	else if(orientation == 4) // base first
+	{
+		drawOffsetPaddedUFace(dest, drect, baseTile, B, CUTOFF_6_16, 0, CUTOFF_15_16, CUTOFF_6_16, CUTOFF_6_16); // U face
+		drawOffsetPaddedWFace(dest, drect, baseTile, B, 0.85, CUTOFF_15_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // W face
+		drawOffsetPaddedSFace(dest, drect, baseTile, B, 0.7, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_15_16, 0); // S face
+		/* ----- */
+		drawOffsetPaddedUFace(dest, drect, lampTile, B, CUTOFF_7_16, CUTOFF_1_16, -1, CUTOFF_7_16, CUTOFF_7_16); // U face
+		drawOffsetPaddedWFace(dest, drect, lampTile, B, 0.85, 0, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16); // W face
+		drawOffsetPaddedSFace(dest, drect, lampTile, B, 0.7, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, 0, CUTOFF_1_16); // S face
+		
+	}
+	else if(orientation == 5)
+	{
+		drawOffsetPaddedUFace(dest, drect, lampTile, B, CUTOFF_7_16, 0, CUTOFF_1_16, CUTOFF_7_16, CUTOFF_7_16); // U face
+		drawOffsetPaddedWFace(dest, drect, lampTile, B, 0.85, CUTOFF_1_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16); // W face
+		drawOffsetPaddedSFace(dest, drect, lampTile, B, 0.7, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_7_16, CUTOFF_1_16, 0); // S face
+		/* ----- */
+		drawOffsetPaddedUFace(dest, drect, baseTile, B, CUTOFF_6_16, CUTOFF_15_16, -1, CUTOFF_6_16, CUTOFF_6_16); // U face
+		drawOffsetPaddedWFace(dest, drect, baseTile, B, 0.85, 0, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16); // W face
+		drawOffsetPaddedSFace(dest, drect, baseTile, B, 0.7, CUTOFF_6_16, CUTOFF_6_16, CUTOFF_6_16, 0, CUTOFF_15_16); // S face
+	}
+	return;
+	
+}
+
 // draw empty flower pot
 void drawFlowerPot(RGBAImage& dest, const ImageRect& drect, const RGBAImage& tile, const RGBAImage& fillerTile, bool drawContent, const RGBAImage& contentTile, int contentType, int B)
 {
@@ -1783,17 +1862,31 @@ int BlockImages::setOffsets()
 			}
 			else if(descriptor[1] == "SOLIDROTATED")
 			{
-				if(descriptorsize == 5) 
+				if(descriptorsize == 6 || descriptorsize == 4) 
 				{
-					// piston value order: down / top / N / S / W / E
-					// piston extension bit: 0x8 (top bit)
+					int rotDegrees;
+					if(!fromstring(descriptor[2], rotDegrees)) rotDegrees = 6;
+					
 					setOffsetsForID(blockid, offsetIterator, *this);
-					blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 8)] = offsetIterator; // facing Down
-					blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 9)] = ++offsetIterator; // facing Top
-					blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 10)] = ++offsetIterator; // facing N
-					blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 11)] = ++offsetIterator; // facing S
-					blockOffsets[offsetIdx(blockid, 4)] = blockOffsets[offsetIdx(blockid, 12)] = ++offsetIterator; // facing W
-					blockOffsets[offsetIdx(blockid, 5)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator; // facing E
+					
+					if(rotDegrees == 6)
+					{
+						// piston value order: down / top / N / S / W / E
+						// piston extension bit: 0x8 (top bit)
+						blockOffsets[offsetIdx(blockid, 0)] = blockOffsets[offsetIdx(blockid, 8)] = offsetIterator; // facing Down
+						blockOffsets[offsetIdx(blockid, 1)] = blockOffsets[offsetIdx(blockid, 9)] = ++offsetIterator; // facing Top
+						blockOffsets[offsetIdx(blockid, 2)] = blockOffsets[offsetIdx(blockid, 10)] = ++offsetIterator; // facing N
+						blockOffsets[offsetIdx(blockid, 3)] = blockOffsets[offsetIdx(blockid, 11)] = ++offsetIterator; // facing S
+						blockOffsets[offsetIdx(blockid, 4)] = blockOffsets[offsetIdx(blockid, 12)] = ++offsetIterator; // facing W
+						blockOffsets[offsetIdx(blockid, 5)] = blockOffsets[offsetIdx(blockid, 13)] = ++offsetIterator; // facing E
+					}
+					else if(rotDegrees == 4)
+					{
+						blockOffsets[offsetIdx(blockid, 0)] = offsetIterator; // facing N
+						blockOffsets[offsetIdx(blockid, 1)] = ++offsetIterator; // facing S
+						blockOffsets[offsetIdx(blockid, 2)] = ++offsetIterator; // facing W
+						blockOffsets[offsetIdx(blockid, 3)] = ++offsetIterator; // facing E
+					}
 				}
 			}
 			else if(descriptor[1] == "SOLIDDATA")
@@ -2255,6 +2348,15 @@ int BlockImages::setOffsets()
 				blockOffsets[offsetIdx(blockid, 8)] = blockOffsets[offsetIdx(blockid, 10)] = ++offsetIterator; // very damaged anvil NS
 				blockOffsets[offsetIdx(blockid, 9)] = blockOffsets[offsetIdx(blockid, 11)] = ++offsetIterator; // very damaged anvil EW
 			}
+			else if(blockid == 198) // end rod
+			{
+				setOffsetsForID(blockid, offsetIterator, *this);  // end rod D
+				blockOffsets[offsetIdx(blockid, 1)] = ++offsetIterator; // U
+				blockOffsets[offsetIdx(blockid, 2)] = ++offsetIterator; // N
+				blockOffsets[offsetIdx(blockid, 3)] = ++offsetIterator; // S
+				blockOffsets[offsetIdx(blockid, 4)] = ++offsetIterator; // W
+				blockOffsets[offsetIdx(blockid, 5)] = ++offsetIterator; // E
+			}
 			offsetIterator++;
 		}
 	}
@@ -2455,9 +2557,11 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					}
 					else if(textureDirectives[i] == "EXPAND")
 					{
-						int xExpansion = (fromstring(textureDirectives[++i], xExpansion)) ? xExpansion % 17 : 0;
-						int yExpansion = (fromstring(textureDirectives[++i], yExpansion)) ? yExpansion % 17 : 0;
-						resize(iblockimage, ImageRect(CUTOFFS_16[xExpansion], CUTOFFS_16[yExpansion], iblockimage.w - 2 * CUTOFFS_16[xExpansion], iblockimage.h - 2 * CUTOFFS_16[yExpansion]), iblocktile, ImageRect(0, 0, tileSize, tileSize));
+						int x = (fromstring(textureDirectives[++i], x)) ? x % (iblockimage.w + 1) : 0;
+						int y = (fromstring(textureDirectives[++i], y)) ? y % (iblockimage.h + 1) : 0;
+						int width = (fromstring(textureDirectives[++i], width)) ? width % (iblockimage.w - x + 1) : 0;
+						int height = (fromstring(textureDirectives[++i], height)) ? height % (iblockimage.h - y + 1) : 0;
+						resize(iblockimage, ImageRect(x, y, width, height), iblocktile, ImageRect(0, 0, tileSize, tileSize));
 					}
 					else if(textureDirectives[i] == "CROP")
 					{
@@ -2567,20 +2671,46 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 			}
 			else if(descriptor[1] == "SOLIDROTATED")
 			{
-				if(descriptorsize == 5) 
+				if(descriptorsize == 6 || descriptorsize == 4)
 				{
+					int rotDegrees;
+					if(!fromstring(descriptor[2], rotDegrees)) rotDegrees = 6;
 					// piston value order: down / top / N / S / W / E
 					// piston extension bit: 0x8 (top bit)
 					// texture order: top side bottom - descriptor[2 3 4]
-					RGBAImage& topface = blockTextures.at((descriptor[2] + ".png"));
-					RGBAImage& sideface = blockTextures.at((descriptor[3] + ".png"));
-					RGBAImage& bottomface = blockTextures.at((descriptor[4] + ".png"));
-					drawRotatedBlockImage(img, getRect(offsetIterator), blockTile(sideface, 2, false), blockTile(sideface, 2, false), blockTile(bottomface), B);  // facing Down
-					drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface), blockTile(sideface), blockTile(topface), B);  // facing Up
-					drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface, 1, false), blockTile(bottomface), blockTile(sideface, 1, false), B);  // facing N
-					drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface, 3, false), blockTile(topface), blockTile(sideface, 3, false), B);  // facing S
-					drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(topface), blockTile(sideface, 1, false), blockTile(sideface, 2, false), B);  // facing W
-					drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(bottomface), blockTile(sideface, 3, false), blockTile(sideface), B);  // facing E
+					int topIndex;
+					int sideIndex;
+					int bottomIndex;
+					if(descriptorsize == 6)
+					{
+						topIndex = 3;
+						sideIndex = 4;
+						bottomIndex = 5;
+					}
+					else 
+					{
+						topIndex = sideIndex = bottomIndex = 3;
+					}
+					
+					RGBAImage& topface = blockTextures.at((descriptor[topIndex] + ".png"));
+					RGBAImage& sideface = blockTextures.at((descriptor[sideIndex] + ".png"));
+					RGBAImage& bottomface = blockTextures.at((descriptor[bottomIndex] + ".png"));
+					if(rotDegrees == 6)
+					{
+						drawRotatedBlockImage(img, getRect(offsetIterator), blockTile(sideface, 2, false), blockTile(sideface, 2, false), blockTile(bottomface), B);  // facing Down
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface), blockTile(sideface), blockTile(topface), B);  // facing Up
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface, 1, false), blockTile(bottomface), blockTile(sideface, 1, false), B);  // facing N
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface, 3, false), blockTile(topface), blockTile(sideface, 3, false), B);  // facing S
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(topface), blockTile(sideface, 1, false), blockTile(sideface, 2, false), B);  // facing W
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(bottomface), blockTile(sideface, 3, false), blockTile(sideface), B);  // facing E
+					}
+					else if(rotDegrees == 4) // tailored for glazed terracotta blocks
+					{
+						drawRotatedBlockImage(img, getRect(offsetIterator), blockTile(sideface, 0, false), blockTile(bottomface, 1, false), blockTile(topface, 1, false), B);  // facing N (S)
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface, 1, false), blockTile(bottomface, 2, false), blockTile(topface, 0, false), B);  // facing S (W)
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface, 2, false), blockTile(bottomface, 3, false), blockTile(topface, 3, false), B);  // facing W (N)
+						drawRotatedBlockImage(img, getRect(++offsetIterator), blockTile(sideface, 3, false), blockTile(bottomface, 0, false), blockTile(topface, 2 , false), B);  // facing E (E)
+					}
 				}
 			}
 			else if(descriptor[1] == "SOLIDDATA" || descriptor[1] == "SOLIDDATAFILL")
@@ -2779,7 +2909,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					RGBAImage baseTile;
 					for(int i = 0; i < datasize; i++, offsetIterator++)
 					{
-						baseTile = blockTextures[descriptor[i + 6] + ".png"];
+						baseTile = blockTextures.at(descriptor[i + 6] + ".png");
 						drawPartialItemBlockImage(img, getRect(offsetIterator), baseTile, 0, false, false, true, false, false, B);  // attached to N (S side)
 						drawPartialItemBlockImage(img, getRect(++offsetIterator), baseTile, 0, true, true, false, false, false, B);  // attached S (N side)
 						drawPartialItemBlockImage(img, getRect(++offsetIterator), baseTile, 0, false, false, false, false, true, B);  // attached W (E side)
@@ -2797,8 +2927,8 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 					RGBAImage bottomTile;
 					for(int i = 0; i < datasize/2 && i < 8; i++, offsetIterator++)
 					{
-						topTile = blockTextures[descriptor[i * 2 + 2] + ".png"];
-						bottomTile = blockTextures[descriptor[i * 2 + 3] + ".png"];
+						topTile = blockTextures.at(descriptor[i * 2 + 2] + ".png");
+						bottomTile = blockTextures.at(descriptor[i * 2 + 3] + ".png");
 						
 						drawItemBlockImage(img, getRect(offsetIterator++), bottomTile, B); // bottom tile
 						drawItemBlockImage(img, getRect(offsetIterator), topTile, B); // top tile
@@ -3041,7 +3171,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 			{
 				if(descriptorsize == 11)
 				{
-					RGBAImage faceTile = blockTextures[descriptor[6] + ".png"];
+					RGBAImage faceTile = blockTextures.at(descriptor[6] + ".png");
 					int croptop;
 					int cropbottom;
 					int cropleft;
@@ -3074,10 +3204,10 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 			{
 				//setOffsetsForID(blockid, offsetIterator, *this);
 				RGBAImage wireCross;
-				RGBAImage& wireTile = blockTextures[descriptor[2] + ".png"];
+				RGBAImage& wireTile = blockTextures.at(descriptor[2] + ".png");
 				if(descriptorsize == 4)
 				{
-					wireCross = blockTextures[descriptor[3] + ".png"];
+					wireCross = blockTextures.at(descriptor[3] + ".png");
 					drawOffsetPaddedUFace(img, getRect(offsetIterator), wireCross, B, CUTOFFS_16[16], CUTOFFS_16[5], CUTOFFS_16[5], CUTOFFS_16[5], CUTOFFS_16[5]); // unconnected
 				}
 				else
@@ -3109,7 +3239,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 			}
 			else if(descriptor[1] == "BITANCHOR")
 			{
-				RGBAImage& baseTile = blockTextures[descriptor[2] + ".png"];
+				RGBAImage& baseTile = blockTextures.at(descriptor[2] + ".png");
 				drawAnchoredFace(img, getRect(offsetIterator), baseTile, B, false, false, false, false, true);  // U face
 				drawAnchoredFace(img, getRect(++offsetIterator), baseTile, B, false, true, false, false, false);  // S face
 				drawAnchoredFace(img, getRect(++offsetIterator), baseTile, B, false, false, true, false, false);  // W face
@@ -3132,7 +3262,7 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				RGBAImage stemTile;
 				for(int i = 0; i < 8; i++, offsetIterator++)
 				{
-					stemTile = blockTextures[descriptor[2] + ".png_" + tostring(i)];
+					stemTile = blockTextures.at(descriptor[2] + ".png_" + tostring(i));
 					drawItemBlockImage(img, getRect(offsetIterator), stemTile, B); // draw stem level 0-7
 				}
 				stemTile = blockTextures.at(descriptor[3] + ".png_0");
@@ -3296,9 +3426,20 @@ bool BlockImages::construct(int B, ifstream& texturelist, ifstream& descriptorli
 				drawAnvil(img, getRect(++offsetIterator), basetexture, anvildamage2, 0, B);
 				drawAnvil(img, getRect(++offsetIterator), basetexture, anvildamage2, 1, B);
 			}
-			else if(blockid == 154)
+			else if(blockid == 154) // hopper
 			{
 				drawHopper(img, getRect(offsetIterator), blockTextures.at((descriptor[2] + ".png")), blockTextures.at((descriptor[3] + ".png")), B);  // hopper
+			}
+			else if(blockid == 198) // end rod
+			{
+				RGBAImage& lamptexture = blockTextures.at((descriptor[2] + ".png"));
+				RGBAImage& basetexture = blockTextures.at((descriptor[3] + ".png"));
+				drawEndRod(img, getRect(offsetIterator), lamptexture, basetexture, 0, B); // D
+				drawEndRod(img, getRect(++offsetIterator), lamptexture, basetexture, 1, B); // U
+				drawEndRod(img, getRect(++offsetIterator), lamptexture, basetexture, 2, B); // N
+				drawEndRod(img, getRect(++offsetIterator), lamptexture, basetexture, 3, B); // S
+				drawEndRod(img, getRect(++offsetIterator), lamptexture, basetexture, 4, B); // W
+				drawEndRod(img, getRect(++offsetIterator), lamptexture, basetexture, 5, B); // E
 			}
 			offsetIterator++;
 		}
