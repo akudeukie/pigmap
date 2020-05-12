@@ -37,7 +37,7 @@ Dependencies are zlib, libpng, libjpeg, pthreads, and some very basic system stu
 dirent.h.  If your platform has a separate development package for libpng (called libpng-dev,
 libpng-devel, or something like that), you'll need that one, too.
 
-Use supplied makefile to build with g++.
+Use supplied makefile to build with default C++ compiler; you may also use 'CXX' environment variable to specify a C++ compiler, for example 'CXX=g++ make'.
 
 ---------------------------------------------------------------------------------------------------
 
